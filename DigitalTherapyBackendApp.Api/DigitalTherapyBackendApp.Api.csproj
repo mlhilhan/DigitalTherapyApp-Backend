@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="11.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.31" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalTherapyBackendApp.Application\DigitalTherapyBackendApp.Application.csproj" />
+    <ProjectReference Include="..\DigitalTherapyBackendApp.Infrastructure\DigitalTherapyBackendApp.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Features\Auth\Queries\" />
+    <Folder Include="Features\TherapySessions\Commands\" />
+    <Folder Include="Features\TherapySessions\Payloads\" />
+    <Folder Include="Features\TherapySessions\Queries\" />
+    <Folder Include="Features\TherapySessions\Responses\" />
+    <Folder Include="Features\SessionMessages\Commands\" />
+    <Folder Include="Features\SessionMessages\Payloads\" />
+    <Folder Include="Features\SessionMessages\Queries\" />
+    <Folder Include="Features\SessionMessages\Responses\" />
+  </ItemGroup>
+
+</Project>

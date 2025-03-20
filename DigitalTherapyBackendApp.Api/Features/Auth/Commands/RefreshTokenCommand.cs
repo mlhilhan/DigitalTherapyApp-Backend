@@ -1,0 +1,131 @@
+﻿using DigitalTherapyBackendApp.Api.Features.Auth.Payloads;
+using DigitalTherapyBackendApp.Api.Features.Auth.Responses;
+using DigitalTherapyBackendApp.Application.Interfaces;
+using DigitalTherapyBackendApp.Infrastructure.Repositories;
+using MediatR;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using DigitalTherapyBackendApp.Domain.Interfaces;
+
+namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
+{
+    public class RefreshTokenCommand : IRequest<RefreshTokenResponse>
+    {
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
+
+        public RefreshTokenCommand(RefreshTokenPayload payload)
+        {
+            AccessToken = payload.AccessToken;
+            RefreshToken = payload.RefreshToken;
+        }
+    }
+
+
+    // Application/Features/Auth/Handlers/RefreshTokenCommandHandler.cs
+    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, RefreshTokenResponse>
+    {
+        private readonly IRedisService _redisService;
+        private readonly IJwtTokenService _jwtTokenService;
+        private readonly TokenValidationParameters _tokenValidationParameters;
+        private readonly IUserRepository _userRepository;
+
+        public RefreshTokenCommandHandler(
+            IRedisService redisService,
+            IJwtTokenService jwtTokenService,
+            TokenValidationParameters tokenValidationParameters,
+            IUserRepository userRepository)
+        {
+            _redisService = redisService;
+            _jwtTokenService = jwtTokenService;
+            _tokenValidationParameters = tokenValidationParameters;
+            _userRepository = userRepository;
+        }
+
+        public async Task<RefreshTokenResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+        {
+            // Access Token'ı doğrula
+            var principal = GetPrincipalFromExpiredToken(request.AccessToken);
+            if (principal == null)
+                throw new UnauthorizedAccessException("Invalid access token");
+
+            var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
+            var username = principal.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value;
+
+            // Redis'ten refresh token kontrolü
+            var storedRefreshToken = await _redisService.GetAsync($"user:{userId}:refresh_token");
+
+            if (string.IsNullOrEmpty(storedRefreshToken) || storedRefreshToken != request.RefreshToken)
+                throw new UnauthorizedAccessException("Invalid refresh token");
+
+            // Token'ı blacklist'e ekle
+            var jti = principal.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+            if (!string.IsNullOrEmpty(jti))
+            {
+                await _redisService.SetAsync(
+                    $"blacklist:token:{jti}",
+                    "revoked",
+                    TimeSpan.FromMinutes(120) // Access token yaşam süresi
+                );
+            }
+
+            // Kullanıcı bilgilerini getir (rol için)
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new UnauthorizedAccessException("User not found");
+
+            // Yeni tokenları oluştur
+            var newAccessToken = _jwtTokenService.GenerateToken(userId, username, user.Role.Name);
+            var newRefreshToken = _jwtTokenService.GenerateRefreshToken(userId);
+
+            // Redis'e yeni refresh token'ı kaydet
+            await _redisService.SetAsync(
+                $"user:{userId}:refresh_token",
+                newRefreshToken,
+                TimeSpan.FromDays(14) // 14 gün
+            );
+
+            return new RefreshTokenResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(120)
+            };
+        }
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = _tokenValidationParameters.ValidateAudience,
+                ValidateIssuer = _tokenValidationParameters.ValidateIssuer,
+                ValidAudience = _tokenValidationParameters.ValidAudience,
+                ValidIssuer = _tokenValidationParameters.ValidIssuer,
+                ValidateIssuerSigningKey = _tokenValidationParameters.ValidateIssuerSigningKey,
+                IssuerSigningKey = _tokenValidationParameters.IssuerSigningKey,
+                ValidateLifetime = false // Önemli: Token süresi geçmiş olsa bile doğrulayabilmek için
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken securityToken;
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
+                var jwtSecurityToken = securityToken as JwtSecurityToken;
+
+                if (jwtSecurityToken == null ||
+                    !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+                        StringComparison.InvariantCultureIgnoreCase))
+                    throw new SecurityTokenException("Invalid token");
+
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
+}
