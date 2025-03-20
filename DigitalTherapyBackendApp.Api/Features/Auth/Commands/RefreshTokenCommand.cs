@@ -23,7 +23,6 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
     }
 
 
-    // Application/Features/Auth/Handlers/RefreshTokenCommandHandler.cs
     public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, RefreshTokenResponse>
     {
         private readonly IRedisService _redisService;

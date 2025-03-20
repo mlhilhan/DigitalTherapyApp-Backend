@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using DigitalTherapyBackendApp.Domain.Constants;
 using DigitalTherapyBackendApp.Api.Features.Auth.Responses;
 using DigitalTherapyBackendApp.Api.Features.Auth.Payloads;
+using DigitalTherapyBackendApp.Domain.Interfaces;
 
 namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
 {
@@ -23,12 +24,14 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly ILogger<User> _logger;
+        private readonly IUserProfileRepository _userProfileRepository;
 
-        public CreateUserCommandHandler(UserManager<User> userManager, RoleManager<Role> roleManager, ILogger<User> logger)
+        public CreateUserCommandHandler(UserManager<User> userManager, RoleManager<Role> roleManager, ILogger<User> logger, IUserProfileRepository userProfileRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
+            _userProfileRepository = userProfileRepository;
         }
 
 
@@ -70,7 +73,18 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
 
                 // User Create
                 var result = await _userManager.CreateAsync(user, request.Payload.Password);
-                if (!result.Succeeded)
+                if (result.Succeeded)
+                {
+                    var userProfile = new UserProfile
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = user.Id,
+                        User = user,
+                    };
+
+                    await _userProfileRepository.AddAsync(userProfile);
+                }
+                else
                 {
                     var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                     _logger.LogError("Failed to create user: {Errors}", errors);
