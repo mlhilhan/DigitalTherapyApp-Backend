@@ -43,9 +43,17 @@ namespace DigitalTherapyBackendApp.Infrastructure
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEmotionalStateRepository, EmotionalStateRepository>();
-            services.AddScoped<IUserProfileRepository, UserProfileRepository>();
             services.AddScoped<ITherapySessionRepository, TherapySessionRepository>();
             services.AddScoped<ISessionMessageRepository, SessionMessageRepository>();
+            services.AddScoped<IPatientProfileRepository, PatientProfileRepository>();
+            services.AddScoped<IPsychologistProfileRepository, PsychologistProfileRepository>();
+            services.AddScoped<IInstitutionProfileRepository, InstitutionProfileRepository>();
+            services.AddScoped<IEmotionalStateRepository, EmotionalStateRepository>();
+            services.AddScoped<ISessionMessageRepository, SessionMessageRepository>();
+            services.AddScoped<ITherapySessionRepository, TherapySessionRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IDirectMessageRepository, DirectMessageRepository>();
+            services.AddScoped<ITherapistPatientRelationshipRepository, TherapistPatientRelationshipRepository>();
 
             return services;
         }

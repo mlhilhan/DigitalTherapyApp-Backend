@@ -15,7 +15,11 @@ namespace DigitalTherapyBackendApp.Infrastructure.Persistence
         public DbSet<EmotionalState> EmotionalStates { get; set; }
         public DbSet<TherapySession> TherapySessions { get; set; }
         public DbSet<SessionMessage> SessionMessages { get; set; }
-        public DbSet<UserProfile> UserProfiles { get; set; }
+        public DbSet<PatientProfile> PatientProfiles { get; set; }
+        public DbSet<PsychologistProfile> PsychologistProfiles { get; set; }
+        public DbSet<InstitutionProfile> InstitutionProfiles { get; set; }
+        public DbSet<DirectMessage> DirectMessages { get; set; }
+        public DbSet<TherapistPatientRelationship> TherapistPatientRelationships { get; set; }
 
 
         // Configuration Class
@@ -28,7 +32,11 @@ namespace DigitalTherapyBackendApp.Infrastructure.Persistence
             modelBuilder.ApplyConfiguration(new EmotionalStateConfiguration());
             modelBuilder.ApplyConfiguration(new TherapySessionConfiguration());
             modelBuilder.ApplyConfiguration(new SessionMessageConfiguration());
-            modelBuilder.ApplyConfiguration(new UserProfileConfiguration());
+            modelBuilder.ApplyConfiguration(new PatientProfileConfiguration());
+            modelBuilder.ApplyConfiguration(new PsychologistProfileConfiguration());
+            modelBuilder.ApplyConfiguration(new InstitutionProfileConfiguration());
+            modelBuilder.ApplyConfiguration(new DirectMessageConfiguration());
+            modelBuilder.ApplyConfiguration(new TherapistPatientRelationshipConfiguration());
 
             // User - Role One-to-Many ilişkisi
             modelBuilder.Entity<User>()
@@ -36,6 +44,17 @@ namespace DigitalTherapyBackendApp.Infrastructure.Persistence
                 .WithMany(r => r.Users)  // Bir rol, birçok kullanıcıya sahip olabilir
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.Restrict); // Rol silinirse kullanıcı silinmemeli
+
+            modelBuilder.Entity<PsychologistProfile>()
+                .HasOne(p => p.User)
+                .WithOne()
+                .HasForeignKey<PsychologistProfile>(p => p.UserId);
+
+            modelBuilder.Entity<PsychologistProfile>()
+                .HasOne(p => p.Institution)
+                .WithMany(i => i.Psychologists)
+                .HasForeignKey(p => p.InstitutionId)
+                .IsRequired(false);
         }
     }
 }

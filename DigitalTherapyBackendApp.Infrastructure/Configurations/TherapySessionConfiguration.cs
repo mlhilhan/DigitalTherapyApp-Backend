@@ -13,38 +13,39 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<TherapySession> builder)
         {
-            builder.HasKey(s => s.Id);
+            // Tablo adı
+            builder.ToTable("TherapySessions");
 
-            builder.Property(s => s.Status)
-                .IsRequired()
-                .HasMaxLength(50);
+            // Primary key
+            builder.HasKey(t => t.Id);
 
-            builder.Property(s => s.Summary)
-                .HasMaxLength(2000);
+            // Properties
+            builder.Property(t => t.Id).ValueGeneratedOnAdd();
+            builder.Property(t => t.PatientId).IsRequired();
+            builder.Property(t => t.IsAiSession).IsRequired().HasDefaultValue(false);
+            builder.Property(t => t.StartTime).IsRequired();
+            builder.Property(t => t.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Scheduled");
+            builder.Property(t => t.Summary).HasMaxLength(2000);
+            builder.Property(t => t.SessionType).HasMaxLength(20).HasDefaultValue("Text");
+            builder.Property(t => t.MeetingLink).HasMaxLength(500);
 
-            builder.Property(s => s.StartTime)
-                .IsRequired();
-
-            // Relationships
-
-            // Patient relationship
-            builder.HasOne(s => s.Patient)
+            // İlişkiler
+            builder.HasOne(t => t.Patient)
                 .WithMany()
-                .HasForeignKey(s => s.PatientId)
+                .HasForeignKey(t => t.PatientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Therapist relationship (optional)
-            builder.HasOne(s => s.Therapist)
+            builder.HasOne(t => t.Therapist)
                 .WithMany()
-                .HasForeignKey(s => s.TherapistId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired(false);
+                .HasForeignKey(t => t.PsychologistId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Messages relationship
-            builder.HasMany(s => s.Messages)
-                .WithOne(m => m.Session)
-                .HasForeignKey(m => m.SessionId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(t => t.Relationship)
+                .WithMany()
+                .HasForeignKey(t => t.RelationshipId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

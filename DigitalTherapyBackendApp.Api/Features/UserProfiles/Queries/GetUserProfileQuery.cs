@@ -14,32 +14,36 @@ namespace DigitalTherapyBackendApp.Api.Features.UserProfiles.Queries
 
     public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, UserProfileResponse>
     {
-        private readonly IUserProfileRepository _userProfileRepository;
+        //private readonly IUserProfileRepository _userProfileRepository;
 
-        public GetUserProfileQueryHandler(IUserProfileRepository userProfileRepository)
-        {
-            _userProfileRepository = userProfileRepository;
-        }
+        //public GetUserProfileQueryHandler(IUserProfileRepository userProfileRepository)
+        //{
+        //    _userProfileRepository = userProfileRepository;
+        //}
 
         public async Task<UserProfileResponse> Handle(GetUserProfileQuery request, CancellationToken cancellationToken)
         {
-            var userProfile = await _userProfileRepository.GetByUserIdAsync(request.UserId);
+            //var userProfile = await _userProfileRepository.GetByUserIdAsync(request.UserId);
 
-            if (userProfile == null)
-                return null;
+            //if (userProfile == null)
+            //    return null;
+
+            //return new UserProfileResponse
+            //{
+            //    Id = userProfile.Id,
+            //    UserId = userProfile.UserId,
+            //    FirstName = userProfile.FirstName,
+            //    LastName = userProfile.LastName,
+            //    BirthDate = userProfile.BirthDate,
+            //    Gender = userProfile.Gender,
+            //    Bio = userProfile.Bio,
+            //    AvatarUrl = userProfile.AvatarUrl,
+            //    PreferredLanguage = userProfile.PreferredLanguage,
+            //    NotificationPreferences = userProfile.NotificationPreferences
+            //};
 
             return new UserProfileResponse
             {
-                Id = userProfile.Id,
-                UserId = userProfile.UserId,
-                FirstName = userProfile.FirstName,
-                LastName = userProfile.LastName,
-                BirthDate = userProfile.BirthDate,
-                Gender = userProfile.Gender,
-                Bio = userProfile.Bio,
-                AvatarUrl = userProfile.AvatarUrl,
-                PreferredLanguage = userProfile.PreferredLanguage,
-                NotificationPreferences = userProfile.NotificationPreferences
             };
         }
     }

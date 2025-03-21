@@ -13,9 +13,16 @@ namespace DigitalTherapyBackendApp.Domain.Interfaces
         Task<IEnumerable<TherapySession>> GetByPatientIdAsync(Guid patientId);
         Task<IEnumerable<TherapySession>> GetByTherapistIdAsync(Guid therapistId);
         Task<IEnumerable<TherapySession>> GetActiveSessionsAsync(Guid userId);
+        Task<IEnumerable<TherapySession>> GetAiSessionsByPatientIdAsync(Guid patientId);
+        Task<IEnumerable<TherapySession>> GetHumanSessionsByPatientIdAsync(Guid patientId);
+        Task<IEnumerable<TherapySession>> GetSessionsByRelationshipIdAsync(Guid relationshipId);
+        Task<IEnumerable<TherapySession>> GetSessionsByDateRangeAsync(DateTime startDate, DateTime endDate);
+        Task<IEnumerable<TherapySession>> GetCompletedSessionsAsync(Guid userId, bool isPatient);
         Task<TherapySession> AddAsync(TherapySession therapySession);
         Task UpdateAsync(TherapySession therapySession);
         Task DeleteAsync(Guid id);
         Task<int> GetSessionCountAsync(Guid userId, bool isPatient, DateTime startDate, DateTime endDate);
+        Task<TherapySession> GetLastSessionAsync(Guid patientId, bool isAiSession);
+        Task<bool> UpdateSessionStatusAsync(Guid id, string status);
     }
 }

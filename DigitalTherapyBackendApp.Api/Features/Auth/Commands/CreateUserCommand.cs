@@ -24,16 +24,19 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly ILogger<User> _logger;
-        private readonly IUserProfileRepository _userProfileRepository;
+        private readonly IPatientProfileRepository _patientProfileRepository;
+        private readonly IPsychologistProfileRepository _psychologistProfileRepository;
+        private readonly IInstitutionProfileRepository _institutionProfileRepository;
 
-        public CreateUserCommandHandler(UserManager<User> userManager, RoleManager<Role> roleManager, ILogger<User> logger, IUserProfileRepository userProfileRepository)
+        public CreateUserCommandHandler(UserManager<User> userManager, RoleManager<Role> roleManager, ILogger<User> logger, IPatientProfileRepository patientProfileRepository, IPsychologistProfileRepository psychologistProfileRepository, IInstitutionProfileRepository institutionProfileRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
-            _userProfileRepository = userProfileRepository;
+            _patientProfileRepository = patientProfileRepository;
+            _psychologistProfileRepository = psychologistProfileRepository;
+            _institutionProfileRepository = institutionProfileRepository;
         }
-
 
         public async Task<CreateUserResponse> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
@@ -75,14 +78,41 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
                 var result = await _userManager.CreateAsync(user, request.Payload.Password);
                 if (result.Succeeded)
                 {
-                    var userProfile = new UserProfile
+                    if (request.Payload.RoleId.ToString() == "4b41d3bc-95cb-4758-8c01-c5487707931e")
                     {
-                        Id = Guid.NewGuid(),
-                        UserId = user.Id,
-                        User = user,
-                    };
+                        var patientprofile = new PatientProfile
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = user.Id,
+                            User = user,
+                        };
 
-                    await _userProfileRepository.AddAsync(userProfile);
+                        await _patientProfileRepository.AddAsync(patientprofile);
+                    }
+
+                    if (request.Payload.RoleId.ToString() == "40c2b39a-a133-4ba9-a97b-ce351bd101ac")
+                    {
+                        var psychologistProfile = new PsychologistProfile
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = user.Id,
+                            User = user,
+                        };
+
+                        await _psychologistProfileRepository.AddAsync(psychologistProfile);
+                    }
+
+                    if (request.Payload.RoleId.ToString() == "5e6ef66e-8298-4002-b765-5a794f149362")
+                    {
+                        var institutionProfile = new InstitutionProfile
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = user.Id,
+                            User = user,
+                        };
+
+                        await _institutionProfileRepository.AddAsync(institutionProfile);
+                    }
                 }
                 else
                 {

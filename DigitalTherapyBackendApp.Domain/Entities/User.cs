@@ -13,6 +13,6 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public Guid RoleId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public Role Role { get; set; }
-        public virtual UserProfile Profile { get; set; }
+        public virtual PatientProfile? PatientProfile { get; set; }
     }
 }

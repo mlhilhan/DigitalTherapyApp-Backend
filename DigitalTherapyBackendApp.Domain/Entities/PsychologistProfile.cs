@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DigitalTherapyBackendApp.Domain.Entities
 {
-    public class UserProfile
+    public class PsychologistProfile
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
@@ -20,6 +20,6 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public string? NotificationPreferences { get; set; }
         public User User { get; set; }
         public Guid? InstitutionId { get; set; }
-        public Institution? Institution { get; set; }
+        public InstitutionProfile? Institution { get; set; }
     }
 }

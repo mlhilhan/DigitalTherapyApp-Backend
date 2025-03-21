@@ -3,6 +3,7 @@ using System;
 using DigitalTherapyBackendApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DigitalTherapyBackendApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250321063451_ReMigration")]
+    partial class ReMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,62 +24,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DirectMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Attachment")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("MessageType")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("Text");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ReceiverId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("RelationshipId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReceiverId");
-
-                    b.HasIndex("RelationshipId");
-
-                    b.HasIndex("SentAt")
-                        .HasDatabaseName("IX_DirectMessage_SentAt");
-
-                    b.HasIndex("SenderId", "ReceiverId")
-                        .HasDatabaseName("IX_DirectMessage_Sender_Receiver");
-
-                    b.ToTable("DirectMessages", (string)null);
-                });
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.EmotionalState", b =>
                 {
@@ -100,15 +47,10 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
-                    b.Property<Guid?>("TherapySessionId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("TherapySessionId");
 
                     b.HasIndex("UserId");
 
@@ -146,6 +88,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
@@ -336,52 +279,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("SessionMessages");
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.TherapistPatientRelationship", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<Guid>("PatientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PsychologistId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PatientId");
-
-                    b.HasIndex("PsychologistId", "PatientId", "Status")
-                        .HasDatabaseName("IX_TherapistPatientRelationship_PsychologistPatientStatus");
-
-                    b.ToTable("TherapistPatientRelationships", (string)null);
-                });
-
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.TherapySession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -391,56 +288,32 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Property<DateTime?>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsAiSession")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("MeetingLink")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid");
-
-                    b.Property<Guid?>("PsychologistId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("RelationshipId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("SessionType")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("Text");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("Scheduled");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Summary")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<Guid?>("TherapistId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PatientId");
 
-                    b.HasIndex("PsychologistId");
+                    b.HasIndex("TherapistId");
 
-                    b.HasIndex("RelationshipId");
-
-                    b.ToTable("TherapySessions", (string)null);
+                    b.ToTable("TherapySessions");
                 });
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.User", b =>
@@ -621,38 +494,8 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DirectMessage", b =>
-                {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "Receiver")
-                        .WithMany()
-                        .HasForeignKey("ReceiverId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.TherapistPatientRelationship", "Relationship")
-                        .WithMany()
-                        .HasForeignKey("RelationshipId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Receiver");
-
-                    b.Navigation("Relationship");
-
-                    b.Navigation("Sender");
-                });
-
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.EmotionalState", b =>
                 {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.TherapySession", null)
-                        .WithMany("EmotionalStates")
-                        .HasForeignKey("TherapySessionId");
-
                     b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -725,25 +568,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Navigation("Session");
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.TherapistPatientRelationship", b =>
-                {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.PatientProfile", "Patient")
-                        .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.PsychologistProfile", "Psychologist")
-                        .WithMany()
-                        .HasForeignKey("PsychologistId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Patient");
-
-                    b.Navigation("Psychologist");
-                });
-
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.TherapySession", b =>
                 {
                     b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "Patient")
@@ -754,17 +578,10 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
 
                     b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "Therapist")
                         .WithMany()
-                        .HasForeignKey("PsychologistId")
+                        .HasForeignKey("TherapistId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.TherapistPatientRelationship", "Relationship")
-                        .WithMany()
-                        .HasForeignKey("RelationshipId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Patient");
-
-                    b.Navigation("Relationship");
 
                     b.Navigation("Therapist");
                 });
@@ -843,8 +660,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.TherapySession", b =>
                 {
-                    b.Navigation("EmotionalStates");
-
                     b.Navigation("Messages");
                 });
 

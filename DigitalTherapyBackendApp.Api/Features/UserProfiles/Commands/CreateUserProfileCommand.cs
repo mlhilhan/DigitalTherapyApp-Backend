@@ -23,47 +23,51 @@ namespace DigitalTherapyBackendApp.Api.Features.UserProfiles.Commands
 
     public class CreateUserProfileCommandHandler : IRequestHandler<CreateUserProfileCommand, UserProfileResponse>
     {
-        private readonly IUserProfileRepository _userProfileRepository;
+        //private readonly IUserProfileRepository _userProfileRepository;
 
-        public CreateUserProfileCommandHandler(IUserProfileRepository userProfileRepository)
-        {
-            _userProfileRepository = userProfileRepository;
-        }
+        //public CreateUserProfileCommandHandler(IUserProfileRepository userProfileRepository)
+        //{
+        //    _userProfileRepository = userProfileRepository;
+        //}
 
         public async Task<UserProfileResponse> Handle(CreateUserProfileCommand request, CancellationToken cancellationToken)
         {
-            var existingProfile = await _userProfileRepository.GetByUserIdAsync(request.UserId);
-            if (existingProfile != null)
-                throw new InvalidOperationException("User profile already exists.");
+            //var existingProfile = await _userProfileRepository.GetByUserIdAsync(request.UserId);
+            //if (existingProfile != null)
+            //    throw new InvalidOperationException("User profile already exists.");
 
-            var userProfile = new UserProfile
-            {
-                Id = Guid.NewGuid(),
-                UserId = request.UserId,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                BirthDate = request.BirthDate,
-                Gender = request.Gender,
-                Bio = request.Bio,
-                AvatarUrl = request.AvatarUrl,
-                PreferredLanguage = request.PreferredLanguage,
-                NotificationPreferences = request.NotificationPreferences
-            };
+            //var userProfile = new UserProfile
+            //{
+            //    Id = Guid.NewGuid(),
+            //    UserId = request.UserId,
+            //    FirstName = request.FirstName,
+            //    LastName = request.LastName,
+            //    BirthDate = request.BirthDate,
+            //    Gender = request.Gender,
+            //    Bio = request.Bio,
+            //    AvatarUrl = request.AvatarUrl,
+            //    PreferredLanguage = request.PreferredLanguage,
+            //    NotificationPreferences = request.NotificationPreferences
+            //};
 
-            var result = await _userProfileRepository.AddAsync(userProfile);
+            //var result = await _userProfileRepository.AddAsync(userProfile);
+
+            //return new UserProfileResponse
+            //{
+            //    Id = result.Id,
+            //    UserId = result.UserId,
+            //    FirstName = result.FirstName,
+            //    LastName = result.LastName,
+            //    BirthDate = result.BirthDate,
+            //    Gender = result.Gender,
+            //    Bio = result.Bio,
+            //    AvatarUrl = result.AvatarUrl,
+            //    PreferredLanguage = result.PreferredLanguage,
+            //    NotificationPreferences = result.NotificationPreferences
+            //};
 
             return new UserProfileResponse
             {
-                Id = result.Id,
-                UserId = result.UserId,
-                FirstName = result.FirstName,
-                LastName = result.LastName,
-                BirthDate = result.BirthDate,
-                Gender = result.Gender,
-                Bio = result.Bio,
-                AvatarUrl = result.AvatarUrl,
-                PreferredLanguage = result.PreferredLanguage,
-                NotificationPreferences = result.NotificationPreferences
             };
         }
     }

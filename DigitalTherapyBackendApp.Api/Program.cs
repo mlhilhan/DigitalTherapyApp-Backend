@@ -16,6 +16,8 @@ using DigitalTherapyBackendApp.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using DigitalTherapyBackendApp.Domain.Interfaces;
+using DigitalTherapyBackendApp.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
