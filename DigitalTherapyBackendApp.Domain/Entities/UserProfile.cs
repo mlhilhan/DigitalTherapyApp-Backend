@@ -19,5 +19,7 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public string? PreferredLanguage { get; set; }
         public string? NotificationPreferences { get; set; }
         public User User { get; set; }
+        public Guid? InstitutionId { get; set; }
+        public Institution? Institution { get; set; }
     }
 }
