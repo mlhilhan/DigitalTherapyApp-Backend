@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using DigitalTherapyBackendApp.Api.Features.Auth.Payloads;
 using DigitalTherapyBackendApp.Api.Features.Auth.Commands;
 using Microsoft.AspNetCore.Authorization;
+using DigitalTherapyBackendApp.Api.Features.Auth.Responses;
 
 namespace DigitalTherapyBackendApp.Api.Controllers
 {
@@ -57,6 +58,20 @@ namespace DigitalTherapyBackendApp.Api.Controllers
         {
             var command = new RefreshTokenCommand(payload);
             var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
+        [HttpPost("ForgotPassword")]
+        public async Task<ActionResult<ForgotPasswordResponse>> ForgotPassword(ForgotPasswordPayload payload)
+        {
+            var command = new ForgotPasswordCommand(payload);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
 
             return Ok(result);
         }

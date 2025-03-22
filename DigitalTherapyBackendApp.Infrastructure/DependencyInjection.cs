@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using DigitalTherapyBackendApp.Application.Interfaces;
-using DigitalTherapyBackendApp.Infrastructure.Identity;
 using DigitalTherapyBackendApp.Infrastructure.ExternalServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -25,6 +24,7 @@ namespace DigitalTherapyBackendApp.Infrastructure
             services.AddScoped<IRedisService, RedisService>();
             services.AddScoped<ITokenBlacklistService, TokenBlacklistService>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IEmailService, EmailService>();
 
             var jwtSettings = configuration.GetSection("JWTSecurity");
             var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
@@ -54,6 +54,8 @@ namespace DigitalTherapyBackendApp.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IDirectMessageRepository, DirectMessageRepository>();
             services.AddScoped<ITherapistPatientRelationshipRepository, TherapistPatientRelationshipRepository>();
+            services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<IInstitutionRepository, InstitutionRepository>();
 
             return services;
         }

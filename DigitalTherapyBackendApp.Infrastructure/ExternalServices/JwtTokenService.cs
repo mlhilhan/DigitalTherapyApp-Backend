@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using DigitalTherapyBackendApp.Application.Interfaces;
 
-namespace DigitalTherapyBackendApp.Infrastructure.Identity
+namespace DigitalTherapyBackendApp.Infrastructure.ExternalServices
 {
     public class JwtTokenService : IJwtTokenService
     {

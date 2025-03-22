@@ -16,5 +16,6 @@ namespace DigitalTherapyBackendApp.Domain.Constants
         public const string UserNotFound = "USER_NOT_FOUND";
         public const string UsernamePasswordIncorrect = "USERNAME_PASSWORD_INCORRECT";
         public const string RoleAssignmentFailed = "ROLE_ASSIGNMENT_FAILED";
+        public const string PasswordResetError = "PASSWORD_RESET_ERROR";
     }
 }

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DigitalTherapyBackendApp.Infrastructure.Persistence;
-using DigitalTherapyBackendApp.Infrastructure.Identity;
 using MediatR;
 using DigitalTherapyBackendApp.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
