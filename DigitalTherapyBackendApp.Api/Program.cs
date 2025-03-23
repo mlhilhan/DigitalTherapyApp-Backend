@@ -17,6 +17,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using DigitalTherapyBackendApp.Infrastructure.Repositories;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -151,6 +152,13 @@ if (app.Environment.IsDevelopment())
         options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
     });
 }
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "storage", "avatars")),
+    RequestPath = "/storage/avatars"
+});
 
 app.UseHttpsRedirection();
 app.UseCors("AllowSpecificOrigins");

@@ -19,13 +19,16 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Queries
     {
         private readonly IPatientProfileRepository _patientProfileRepository;
         private readonly ILogger<GetPatientProfileQueryHandler> _logger;
+        private readonly string _baseUrl;
 
         public GetPatientProfileQueryHandler(
             IPatientProfileRepository patientProfileRepository,
-            ILogger<GetPatientProfileQueryHandler> logger)
+            ILogger<GetPatientProfileQueryHandler> logger,
+            IConfiguration configuration)
         {
             _patientProfileRepository = patientProfileRepository;
             _logger = logger;
+            _baseUrl = configuration["AppSettings:BaseUrl"];
         }
 
         public async Task<GetPatientProfileResponse> Handle(GetPatientProfileQuery request, CancellationToken cancellationToken)
@@ -43,6 +46,10 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Queries
                     };
                 }
 
+                var avatarUrl = !string.IsNullOrEmpty(profile.AvatarUrl)
+                    ? $"{_baseUrl}{profile.AvatarUrl}"
+                    : null;
+
                 return new GetPatientProfileResponse
                 {
                     Success = true,
@@ -55,7 +62,7 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Queries
                         BirthDate = profile.BirthDate,
                         Gender = profile.Gender,
                         Bio = profile.Bio,
-                        AvatarUrl = profile.AvatarUrl,
+                        AvatarUrl = avatarUrl,
                         PreferredLanguage = profile.PreferredLanguage,
                         NotificationPreferences = profile.NotificationPreferences
                     }

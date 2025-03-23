@@ -12,7 +12,7 @@ namespace DigitalTherapyBackendApp.Application.Dtos
         public Guid UserId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime? BirthDate { get; set; }
+        public DateOnly? BirthDate { get; set; }
         public string Gender { get; set; }
         public string Bio { get; set; }
         public string AvatarUrl { get; set; }
