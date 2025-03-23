@@ -64,7 +64,11 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Queries
                         Bio = profile.Bio,
                         AvatarUrl = avatarUrl,
                         PreferredLanguage = profile.PreferredLanguage,
-                        NotificationPreferences = profile.NotificationPreferences
+                        NotificationPreferences = profile.NotificationPreferences,
+                        Email = profile.User?.Email,
+                        EmailConfirmed = profile.User?.EmailConfirmed,
+                        PhoneNumber = profile.User?.PhoneNumber,
+                        PhoneNumberConfirmed = profile.User?.PhoneNumberConfirmed
                     }
                 };
             }

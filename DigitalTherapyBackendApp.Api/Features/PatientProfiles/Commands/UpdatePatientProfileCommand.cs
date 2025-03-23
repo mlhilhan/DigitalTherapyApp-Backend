@@ -16,17 +16,22 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Commands
         public string? Bio { get; set; }
         public string? PreferredLanguage { get; set; }
         public string? NotificationPreferences { get; set; }
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
     }
 
     public class UpdatePatientProfileCommandHandler : IRequestHandler<UpdatePatientProfileCommand, GetPatientProfileResponse>
     {
+        private readonly IUserRepository _userRepository;
         private readonly IPatientProfileRepository _patientProfileRepository;
         private readonly ILogger<UpdatePatientProfileCommandHandler> _logger;
 
         public UpdatePatientProfileCommandHandler(
+            IUserRepository userRepository,
             IPatientProfileRepository patientProfileRepository,
             ILogger<UpdatePatientProfileCommandHandler> logger)
         {
+            _userRepository = userRepository;
             _patientProfileRepository = patientProfileRepository;
             _logger = logger;
         }
@@ -44,6 +49,14 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Commands
                     };
                 }
 
+                var user = await _userRepository.GetByIdAsync(request.UserId);
+                if (user != null)
+                {
+                    user.Email = request.Email;
+                    user.PhoneNumber = request.PhoneNumber;
+                    await _userRepository.UpdateAsync(user);
+                }
+
                 profile.FirstName = request.FirstName;
                 profile.LastName = request.LastName;
                 profile.BirthDate = request.BirthDate;
@@ -51,6 +64,7 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Commands
                 profile.Bio = request.Bio;
                 profile.PreferredLanguage = request.PreferredLanguage;
                 profile.NotificationPreferences = request.NotificationPreferences;
+                    
 
                 if (profile.Id == Guid.Empty)
                 {
@@ -76,7 +90,9 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Commands
                         Bio = profile.Bio,
                         AvatarUrl = profile.AvatarUrl,
                         PreferredLanguage = profile.PreferredLanguage,
-                        NotificationPreferences = profile.NotificationPreferences
+                        NotificationPreferences = profile.NotificationPreferences,
+                        Email = user.Email,
+                        PhoneNumber = user.PhoneNumber
                     }
                 };
             }
