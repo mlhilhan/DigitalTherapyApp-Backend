@@ -3,6 +3,7 @@ using System;
 using DigitalTherapyBackendApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DigitalTherapyBackendApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250324200703_AddPreferredLanguageForInstitutionProfile")]
+    partial class AddPreferredLanguageForInstitutionProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,31 +229,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("PatientProfiles", (string)null);
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.PsychologistAvailabilitySlot", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("DayOfWeek")
-                        .HasColumnType("integer");
-
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("interval");
-
-                    b.Property<Guid>("PsychologistProfileId")
-                        .HasColumnType("uuid");
-
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("interval");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PsychologistProfileId");
-
-                    b.ToTable("PsychologistAvailabilitySlots");
-                });
-
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.PsychologistProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -268,18 +246,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Property<DateTime?>("BirthDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Certifications")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("Education")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("Experience")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
                     b.Property<string>("FirstName")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -291,20 +257,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Property<Guid?>("InstitutionId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("InstitutionName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("IsAvailable")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
                     b.Property<string>("LastName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("LicenseNumber")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -388,25 +341,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.HasIndex("SessionId");
 
                     b.ToTable("SessionMessages");
-                });
-
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Specialty", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("Specialties", (string)null);
                 });
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.TherapistPatientRelationship", b =>
@@ -539,9 +473,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("LockoutEnabled")
@@ -697,21 +628,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("PsychologistProfileSpecialty", b =>
-                {
-                    b.Property<Guid>("PsychologistsId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("SpecialtiesId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("PsychologistsId", "SpecialtiesId");
-
-                    b.HasIndex("SpecialtiesId");
-
-                    b.ToTable("PsychologistSpecialties", (string)null);
-                });
-
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DirectMessage", b =>
                 {
                     b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "Receiver")
@@ -777,17 +693,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                         .HasForeignKey("DigitalTherapyBackendApp.Domain.Entities.PatientProfile", "UserId1");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.PsychologistAvailabilitySlot", b =>
-                {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.PsychologistProfile", "PsychologistProfile")
-                        .WithMany("AvailabilitySlots")
-                        .HasForeignKey("PsychologistProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PsychologistProfile");
                 });
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.PsychologistProfile", b =>
@@ -933,29 +838,9 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PsychologistProfileSpecialty", b =>
-                {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.PsychologistProfile", null)
-                        .WithMany()
-                        .HasForeignKey("PsychologistsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.Specialty", null)
-                        .WithMany()
-                        .HasForeignKey("SpecialtiesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.InstitutionProfile", b =>
                 {
                     b.Navigation("Psychologists");
-                });
-
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.PsychologistProfile", b =>
-                {
-                    b.Navigation("AvailabilitySlots");
                 });
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Role", b =>

@@ -29,6 +29,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
             builder.Property(i => i.Phone).HasMaxLength(20);
             builder.Property(i => i.Email).HasMaxLength(255);
             builder.Property(i => i.Website).HasMaxLength(255);
+            builder.Property(i => i.PreferredLanguage).HasMaxLength(50);
             builder.Property(i => i.IsVerified).HasDefaultValue(false);
 
             // Relationships

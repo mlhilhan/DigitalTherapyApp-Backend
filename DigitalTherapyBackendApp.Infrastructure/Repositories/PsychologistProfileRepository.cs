@@ -1,30 +1,20 @@
 ﻿using DigitalTherapyBackendApp.Domain.Entities;
 using DigitalTherapyBackendApp.Domain.Interfaces;
-using DigitalTherapyBackendApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DigitalTherapyBackendApp.Infrastructure.Repositories
 {
     public class PsychologistProfileRepository : IPsychologistProfileRepository
     {
-        private readonly AppDbContext _context;
+        private readonly IApplicationDbContext _context;
 
-        public PsychologistProfileRepository(AppDbContext context)
+        public PsychologistProfileRepository(IApplicationDbContext context)
         {
             _context = context;
-        }
-
-        public async Task<IEnumerable<PsychologistProfile>> GetAllAsync()
-        {
-            return await _context.PsychologistProfiles
-                .Include(p => p.User)
-                .Include(p => p.Institution)
-                .ToListAsync();
         }
 
         public async Task<PsychologistProfile> GetByIdAsync(Guid id)
@@ -32,6 +22,8 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
             return await _context.PsychologistProfiles
                 .Include(p => p.User)
                 .Include(p => p.Institution)
+                .Include(p => p.Specialties)
+                .Include(p => p.AvailabilitySlots)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -40,41 +32,66 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
             return await _context.PsychologistProfiles
                 .Include(p => p.User)
                 .Include(p => p.Institution)
+                .Include(p => p.Specialties)
+                .Include(p => p.AvailabilitySlots)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
         }
 
-        public async Task<IEnumerable<PsychologistProfile>> GetByInstitutionIdAsync(Guid institutionId)
+        public async Task<List<PsychologistProfile>> GetAllAsync()
         {
             return await _context.PsychologistProfiles
                 .Include(p => p.User)
+                .Include(p => p.Institution)
+                .Include(p => p.Specialties)
+                .Include(p => p.AvailabilitySlots)
+                .ToListAsync();
+        }
+
+        public async Task<List<PsychologistProfile>> GetByInstitutionIdAsync(Guid institutionId)
+        {
+            return await _context.PsychologistProfiles
+                .Include(p => p.User)
+                .Include(p => p.Institution)
+                .Include(p => p.Specialties)
+                .Include(p => p.AvailabilitySlots)
                 .Where(p => p.InstitutionId == institutionId)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<PsychologistProfile>> GetIndependentPsychologistsAsync()
+        public async Task<List<PsychologistProfile>> GetBySpecialtyAsync(string specialty)
         {
             return await _context.PsychologistProfiles
                 .Include(p => p.User)
-                .Where(p => p.InstitutionId == null)
+                .Include(p => p.Institution)
+                .Include(p => p.Specialties)
+                .Include(p => p.AvailabilitySlots)
+                .Where(p => p.Specialties.Any(s => s.Name.Contains(specialty)))
                 .ToListAsync();
         }
 
-        public async Task<PsychologistProfile> AddAsync(PsychologistProfile psychologistProfile)
+        public async Task<List<PsychologistProfile>> GetAvailablePsychologistsAsync()
         {
-            await _context.PsychologistProfiles.AddAsync(psychologistProfile);
-            await _context.SaveChangesAsync();
-            return psychologistProfile;
+            return await _context.PsychologistProfiles
+                .Include(p => p.User)
+                .Include(p => p.Institution)
+                .Include(p => p.Specialties)
+                .Include(p => p.AvailabilitySlots)
+                .Where(p => p.IsAvailable && p.User.IsActive)
+                .ToListAsync();
         }
 
-        public async Task<PsychologistProfile> UpdateAsync(PsychologistProfile psychologistProfile)
+        public async Task<PsychologistProfile> AddAsync(PsychologistProfile profile)
         {
-            var existingProfile = await _context.PsychologistProfiles.FindAsync(psychologistProfile.Id);
-            if (existingProfile == null)
-                return null;
-
-            _context.Entry(existingProfile).CurrentValues.SetValues(psychologistProfile);
+            _context.PsychologistProfiles.Add(profile);
             await _context.SaveChangesAsync();
-            return existingProfile;
+            return profile;
+        }
+
+        public async Task<PsychologistProfile> UpdateAsync(PsychologistProfile profile)
+        {
+            _context.Entry(profile).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return profile;
         }
 
         public async Task<bool> DeleteAsync(Guid id)
@@ -88,35 +105,55 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> AssignToInstitutionAsync(Guid psychologistId, Guid institutionId)
+        public async Task ClearSpecialtiesAsync(Guid psychologistId)
         {
-            var psychologist = await _context.PsychologistProfiles.FindAsync(psychologistId);
-            if (psychologist == null)
-                return false;
+            var profile = await _context.PsychologistProfiles
+                .Include(p => p.Specialties)
+                .FirstOrDefaultAsync(p => p.Id == psychologistId);
 
-            var institution = await _context.InstitutionProfiles.FindAsync(institutionId);
-            if (institution == null)
-                return false;
-
-            psychologist.InstitutionId = institutionId;
-            await _context.SaveChangesAsync();
-            return true;
+            if (profile != null)
+            {
+                profile.Specialties.Clear();
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public async Task<bool> RemoveFromInstitutionAsync(Guid psychologistId)
+        public async Task UpdateSpecialtiesAsync(Guid psychologistId, List<Specialty> specialties)
         {
-            var psychologist = await _context.PsychologistProfiles.FindAsync(psychologistId);
-            if (psychologist == null)
-                return false;
+            var profile = await _context.PsychologistProfiles
+                .Include(p => p.Specialties)
+                .FirstOrDefaultAsync(p => p.Id == psychologistId);
 
-            psychologist.InstitutionId = null;
-            await _context.SaveChangesAsync();
-            return true;
+            if (profile != null)
+            {
+                foreach (var specialty in specialties)
+                {
+                    profile.Specialties.Add(specialty);
+                }
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public async Task<bool> ExistsByUserIdAsync(Guid userId)
+        public async Task UpdateAvailabilityAsync(Guid psychologistId, bool isAvailable, List<PsychologistAvailabilitySlot> availabilitySlots)
         {
-            return await _context.PsychologistProfiles.AnyAsync(p => p.UserId == userId);
+            var profile = await _context.PsychologistProfiles
+                .Include(p => p.AvailabilitySlots)
+                .FirstOrDefaultAsync(p => p.Id == psychologistId);
+
+            if (profile != null)
+            {
+                profile.IsAvailable = isAvailable;
+
+                _context.PsychologistAvailabilitySlots.RemoveRange(profile.AvailabilitySlots);
+
+                foreach (var slot in availabilitySlots)
+                {
+                    slot.PsychologistProfileId = profile.Id;
+                    profile.AvailabilitySlots.Add(slot);
+                }
+
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

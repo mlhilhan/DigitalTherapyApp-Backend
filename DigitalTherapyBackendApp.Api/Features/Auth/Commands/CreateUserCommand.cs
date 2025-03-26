@@ -85,6 +85,7 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
                             Id = Guid.NewGuid(),
                             UserId = user.Id,
                             User = user,
+                            PreferredLanguage = request.Payload.PreferredLanguage,
                         };
 
                         await _patientProfileRepository.AddAsync(patientprofile);
@@ -97,6 +98,7 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
                             Id = Guid.NewGuid(),
                             UserId = user.Id,
                             User = user,
+                            PreferredLanguage = request.Payload.PreferredLanguage,
                         };
 
                         await _psychologistProfileRepository.AddAsync(psychologistProfile);
@@ -109,6 +111,7 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
                             Id = Guid.NewGuid(),
                             UserId = user.Id,
                             User = user,
+                            PreferredLanguage = request.Payload.PreferredLanguage,
                         };
 
                         await _institutionProfileRepository.AddAsync(institutionProfile);

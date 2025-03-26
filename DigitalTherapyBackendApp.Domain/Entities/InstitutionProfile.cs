@@ -19,6 +19,7 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public string? Website { get; set; }
         public bool IsVerified { get; set; }
         public DateTime FoundationDate { get; set; }
+        public string? PreferredLanguage { get; set; }
         public User User { get; set; }
         public ICollection<PsychologistProfile> Psychologists { get; set; } = new List<PsychologistProfile>();
     }

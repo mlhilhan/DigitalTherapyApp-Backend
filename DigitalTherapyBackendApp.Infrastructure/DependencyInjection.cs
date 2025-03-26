@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using DigitalTherapyBackendApp.Infrastructure.Repositories;
+using DigitalTherapyBackendApp.Infrastructure.Persistence;
 
 namespace DigitalTherapyBackendApp.Infrastructure
 {
@@ -25,6 +26,7 @@ namespace DigitalTherapyBackendApp.Infrastructure
             services.AddScoped<ITokenBlacklistService, TokenBlacklistService>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
             var jwtSettings = configuration.GetSection("JWTSecurity");
             var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
@@ -56,6 +58,10 @@ namespace DigitalTherapyBackendApp.Infrastructure
             services.AddScoped<ITherapistPatientRelationshipRepository, TherapistPatientRelationshipRepository>();
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<IInstitutionRepository, InstitutionRepository>();
+            services.AddScoped<IPsychologistProfileRepository, PsychologistProfileRepository>();
+            services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<AppDbContext>());
+            services.AddScoped<IInstitutionProfileRepository, InstitutionProfileRepository>();
+            services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
 
             return services;
         }

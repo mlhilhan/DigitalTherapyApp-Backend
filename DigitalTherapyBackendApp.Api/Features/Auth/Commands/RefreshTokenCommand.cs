@@ -44,7 +44,6 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
 
         public async Task<RefreshTokenResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            // Access Token'ı doğrula
             var principal = GetPrincipalFromExpiredToken(request.AccessToken);
             if (principal == null)
                 throw new UnauthorizedAccessException("Invalid access token");
@@ -52,37 +51,32 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
             var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
             var username = principal.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value;
 
-            // Redis'ten refresh token kontrolü
             var storedRefreshToken = await _redisService.GetAsync($"user:{userId}:refresh_token");
 
             if (string.IsNullOrEmpty(storedRefreshToken) || storedRefreshToken != request.RefreshToken)
                 throw new UnauthorizedAccessException("Invalid refresh token");
 
-            // Token'ı blacklist'e ekle
             var jti = principal.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
             if (!string.IsNullOrEmpty(jti))
             {
                 await _redisService.SetAsync(
                     $"blacklist:token:{jti}",
                     "revoked",
-                    TimeSpan.FromMinutes(120) // Access token yaşam süresi
+                    TimeSpan.FromMinutes(120)
                 );
             }
 
-            // Kullanıcı bilgilerini getir (rol için)
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 throw new UnauthorizedAccessException("User not found");
 
-            // Yeni tokenları oluştur
             var newAccessToken = _jwtTokenService.GenerateToken(userId, username, user.Role.Name);
             var newRefreshToken = _jwtTokenService.GenerateRefreshToken(userId);
 
-            // Redis'e yeni refresh token'ı kaydet
             await _redisService.SetAsync(
                 $"user:{userId}:refresh_token",
                 newRefreshToken,
-                TimeSpan.FromDays(14) // 14 gün
+                TimeSpan.FromDays(14)
             );
 
             return new RefreshTokenResponse

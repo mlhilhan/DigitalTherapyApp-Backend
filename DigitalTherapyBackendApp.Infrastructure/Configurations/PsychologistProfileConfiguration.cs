@@ -1,11 +1,6 @@
 ﻿using DigitalTherapyBackendApp.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DigitalTherapyBackendApp.Infrastructure.Configurations
 {
@@ -30,6 +25,14 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
             builder.Property(p => p.PreferredLanguage).HasMaxLength(50);
             builder.Property(p => p.NotificationPreferences).HasMaxLength(255);
 
+            // Yeni alanlar için yapılandırma
+            builder.Property(p => p.InstitutionName).HasMaxLength(200);
+            builder.Property(p => p.Education).HasMaxLength(1000);
+            builder.Property(p => p.Certifications).HasMaxLength(1000);
+            builder.Property(p => p.Experience).HasMaxLength(1000);
+            builder.Property(p => p.LicenseNumber).HasMaxLength(100);
+            builder.Property(p => p.IsAvailable).HasDefaultValue(false);
+
             // Relationships
             builder.HasOne(p => p.User)
                 .WithOne()
@@ -42,6 +45,11 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
                 .HasForeignKey(p => p.InstitutionId)
                 .IsRequired(false) // InstitutionId can be null (independent psychologist)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Many-to-many relationship with Specialties
+            builder.HasMany(p => p.Specialties)
+                .WithMany(s => s.Psychologists)
+                .UsingEntity(j => j.ToTable("PsychologistSpecialties"));
         }
     }
 }

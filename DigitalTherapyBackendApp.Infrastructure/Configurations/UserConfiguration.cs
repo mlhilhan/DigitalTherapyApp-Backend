@@ -18,6 +18,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
 
             // Properties
             builder.Property(u => u.RoleId).IsRequired();
+            builder.Property(u => u.IsActive);
 
             // Foreign Key İlişkisi
             builder.HasOne(u => u.Role)

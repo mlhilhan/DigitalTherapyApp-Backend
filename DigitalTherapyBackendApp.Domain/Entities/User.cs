@@ -14,5 +14,6 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public Role Role { get; set; }
         public virtual PatientProfile? PatientProfile { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

@@ -1,24 +1,23 @@
 ﻿using DigitalTherapyBackendApp.Domain.Entities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DigitalTherapyBackendApp.Domain.Interfaces
 {
     public interface IPsychologistProfileRepository
     {
-        Task<IEnumerable<PsychologistProfile>> GetAllAsync();
         Task<PsychologistProfile> GetByIdAsync(Guid id);
         Task<PsychologistProfile> GetByUserIdAsync(Guid userId);
-        Task<IEnumerable<PsychologistProfile>> GetByInstitutionIdAsync(Guid institutionId);
-        Task<IEnumerable<PsychologistProfile>> GetIndependentPsychologistsAsync();
-        Task<PsychologistProfile> AddAsync(PsychologistProfile psychologistProfile);
-        Task<PsychologistProfile> UpdateAsync(PsychologistProfile psychologistProfile);
+        Task<List<PsychologistProfile>> GetAllAsync();
+        Task<List<PsychologistProfile>> GetByInstitutionIdAsync(Guid institutionId);
+        Task<List<PsychologistProfile>> GetBySpecialtyAsync(string specialty);
+        Task<List<PsychologistProfile>> GetAvailablePsychologistsAsync();
+        Task<PsychologistProfile> AddAsync(PsychologistProfile profile);
+        Task<PsychologistProfile> UpdateAsync(PsychologistProfile profile);
         Task<bool> DeleteAsync(Guid id);
-        Task<bool> AssignToInstitutionAsync(Guid psychologistId, Guid institutionId);
-        Task<bool> RemoveFromInstitutionAsync(Guid psychologistId);
-        Task<bool> ExistsByUserIdAsync(Guid userId);
+        Task ClearSpecialtiesAsync(Guid psychologistId);
+        Task UpdateSpecialtiesAsync(Guid psychologistId, List<Specialty> specialties);
+        Task UpdateAvailabilityAsync(Guid psychologistId, bool isAvailable, List<PsychologistAvailabilitySlot> availabilitySlots);
     }
 }
