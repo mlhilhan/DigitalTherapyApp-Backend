@@ -1,14 +1,8 @@
-﻿using DigitalTherapyBackendApp.Api.Controllers;
-using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands;
+﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands;
+using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Payloads;
 using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Queries;
-using DigitalTherapyBackendApp.Api.Features.PatientProfiles.Queries;
-using DigitalTherapyBackendApp.Api.Features.PsychologistProfiles.Queries;
-using DigitalTherapyBackendApp.Application.Dtos;
-using DigitalTherapyBackendApp.Domain.Entities;
-using DigitalTherapyBackendApp.Infrastructure.ExternalServices;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -19,164 +13,131 @@ namespace DigitalTherapyBackendApp.Api.Controllers
     [Route("api/[controller]")]
     public class EmotionalStatesController : ControllerBase
     {
-        private readonly IEmotionalStateService _emotionalStateService;
         private readonly IMediator _mediator;
-        private readonly UserManager<User> _userManager;
 
-        public EmotionalStatesController(IEmotionalStateService emotionalStateService, IMediator mediator, UserManager<User> userManager)
+        public EmotionalStatesController(IMediator mediator)
         {
-            _emotionalStateService = emotionalStateService;
             _mediator = mediator;
-            _userManager = userManager;
         }
 
         private Guid GetUserId()
         {
-            try
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(userIdString, out Guid userId))
             {
-                var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (Guid.TryParse(userIdString, out var userId))
-                {
-                    return userId;
-                }
-                throw new Exception("Invalid GUID format.");
-            } catch (Exception ex) 
-            {
-                throw new Exception("Error: " + ex.Message);
+                return userId;
             }
+
+            throw new UnauthorizedAccessException("User ID could not be determined.");
         }
 
-        //[HttpGet("GetEmotionalStates")]
-        //public async Task<ActionResult<IEnumerable<EmotionalStateDto>>> GetEmotionalStates([FromQuery] GetEmotionalStatesQuery query)
-        //{
-        //    var userId = query.UserId;
-
-        //    if (query.StartDate.HasValue && query.EndDate.HasValue)
-        //    {
-        //        return Ok(await _emotionalStateService.GetByDateRangeAsync(userId, query.StartDate.Value, query.EndDate.Value));
-        //    }
-
-        //    return Ok(await _emotionalStateService.GetAllByUserIdAsync(userId));
-        //}
-
         [HttpGet("GetEmotionalStates")]
-        public async Task<IActionResult> GetEmotionalStates()
+        public async Task<IActionResult> GetEmotionalStates([FromQuery] GetEmotionalStatesPayload payload)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            var query = new GetEmotionalStatesQuery(currentUser.Id);
+            var query = new GetEmotionalStatesQuery(GetUserId(), payload.StartDate, payload.EndDate);
             var result = await _mediator.Send(query);
-
             return Ok(result);
         }
 
-
-        [HttpGet("GetEmotionalStates")]
-        public async Task<IActionResult> GetEmotionalStates(Guid userId, DateTime? startDate = null, DateTime? endDate = null)
+        [HttpGet("GetEmotionalStates/{id}")]
+        public async Task<IActionResult> GetEmotionalState(Guid id)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            userId = currentUser.Id;
-
-            var query = new GetEmotionalStatesQuery(userId, startDate, endDate);
+            var query = new GetEmotionalStateQuery(id, GetUserId());
             var result = await _mediator.Send(query);
 
-            return Ok(result);
-        }
-
-
-        [HttpGet("GetEmotionalState/{id}")]
-        public async Task<ActionResult<EmotionalStateDto>> GetEmotionalState(Guid id)
-        {
-            var userId = GetUserId();
-            var emotionalState = await _emotionalStateService.GetByIdAsync(id, userId);
-
-            if (emotionalState == null)
+            if (!result.Success)
             {
-                return NotFound();
+                return NotFound(result);
             }
 
-            return Ok(emotionalState);
+            return Ok(result);
         }
 
         [HttpGet("GetBookmarked")]
-        public async Task<ActionResult<IEnumerable<EmotionalStateDto>>> GetBookmarked()
+        public async Task<IActionResult> GetBookmarked()
         {
-            var userId = GetUserId();
-            return Ok(await _emotionalStateService.GetBookmarkedAsync(userId));
+            var query = new GetBookmarkedEmotionalStatesQuery(GetUserId());
+            var result = await _mediator.Send(query);
+            return Ok(result);
         }
 
         [HttpGet("GetStatistics")]
-        public async Task<ActionResult<EmotionalStateStatisticsDto>> GetStatistics([FromQuery] GetEmotionalStateStatisticsQuery query)
+        public async Task<IActionResult> GetStatistics([FromQuery] GetEmotionalStateStatisticsPayload payload)
         {
-            var userId = GetUserId();
-            return Ok(await _emotionalStateService.GetStatisticsAsync(userId, query.StartDate, query.EndDate));
+            var query = new GetEmotionalStateStatisticsQuery(GetUserId(), payload.StartDate, payload.EndDate);
+            var result = await _mediator.Send(query);
+            return Ok(result);
         }
 
         [HttpPost("CreateEmotionalState")]
-        public async Task<ActionResult<int>> CreateEmotionalState([FromBody] CreateEmotionalStateCommand command)
+        public async Task<IActionResult> CreateEmotionalState([FromBody] CreateEmotionalStatePayload payload)
         {
-            var userId = command.Payload.UserId;
-            var dto = new CreateEmotionalStateDto
-            {
-                MoodLevel = command.Payload.MoodLevel,
-                Factors = command.Payload.Factors,
-                Notes = command.Payload.Notes,
-                Date = command.Payload.Date,
-                IsBookmarked = command.Payload.IsBookmarked
-            };
+            var command = new CreateEmotionalStateCommand(payload);
+            var result = await _mediator.Send(command);
 
-            var id = await _emotionalStateService.CreateAsync(dto, userId);
-            return CreatedAtAction(nameof(GetEmotionalState), new { id = id }, id);
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return CreatedAtAction(nameof(GetEmotionalState), new { id = result.Data.Id }, result);
         }
 
         [HttpPut("UpdateEmotionalState/{id}")]
-        public async Task<IActionResult> UpdateEmotionalState(Guid id, [FromBody] UpdateEmotionalStateCommand command)
+        public async Task<IActionResult> UpdateEmotionalState(Guid id, [FromBody] UpdateEmotionalStatePayload payload)
         {
-            var userId = command.UserId;
-            var dto = new UpdateEmotionalStateDto
-            {
-                MoodLevel = command.Payload.MoodLevel,
-                Factors = command.Payload.Factors,
-                Notes = command.Payload.Notes,
-                Date = command.Payload.Date,
-                IsBookmarked = command.Payload.IsBookmarked
-            };
+            var command = new UpdateEmotionalStateCommand(id, payload, GetUserId());
+            var result = await _mediator.Send(command);
 
-            var result = await _emotionalStateService.UpdateAsync(id, dto, userId);
-
-            if (!result)
+            if (!result.Success)
             {
-                return NotFound();
+                if (result.ErrorCode == "EMOTIONALSTATE_NOT_FOUND")
+                {
+                    return NotFound(result);
+                }
+
+                return BadRequest(result);
             }
 
-            return NoContent();
+            return Ok(result);
         }
 
         [HttpDelete("DeleteEmotionalState/{id}")]
         public async Task<IActionResult> DeleteEmotionalState(Guid id)
         {
-            var userId = GetUserId();
-            var result = await _emotionalStateService.DeleteAsync(id, userId);
+            var command = new DeleteEmotionalStateCommand(id, GetUserId());
+            var result = await _mediator.Send(command);
 
-            if (!result)
+            if (!result.Success)
             {
-                return NotFound();
+                if (result.ErrorCode == "EMOTIONALSTATE_NOT_FOUND")
+                {
+                    return NotFound(result);
+                }
+
+                return BadRequest(result);
             }
 
-            return NoContent();
+            return Ok(result);
         }
 
         [HttpPatch("{id}/ToggleBookmark")]
         public async Task<IActionResult> ToggleBookmark(Guid id)
         {
-            var userId = GetUserId();
-            var result = await _emotionalStateService.ToggleBookmarkAsync(id, userId);
+            var command = new ToggleBookmarkCommand(id, GetUserId());
+            var result = await _mediator.Send(command);
 
-            if (!result)
+            if (!result.Success)
             {
-                return NotFound();
+                if (result.ErrorCode == "EMOTIONALSTATE_NOT_FOUND")
+                {
+                    return NotFound(result);
+                }
+
+                return BadRequest(result);
             }
 
-            return NoContent();
+            return Ok(result);
         }
     }
 }
