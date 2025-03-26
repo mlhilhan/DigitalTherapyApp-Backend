@@ -11,9 +11,9 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
 {
     public class UpdateEmotionalStateCommand : IRequest<UpdateEmotionalStateResponse>
     {
-        public Guid Id { get; }
-        public Guid UserId { get; }
-        public UpdateEmotionalStatePayload Payload { get; }
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
+        public UpdateEmotionalStatePayload Payload { get; set; }
 
         public UpdateEmotionalStateCommand(Guid id, UpdateEmotionalStatePayload payload, Guid userId)
         {

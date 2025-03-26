@@ -9,8 +9,8 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Queries
 {
     public class GetEmotionalStateQuery : IRequest<GetEmotionalStateResponse>
     {
-        public Guid Id { get; }
-        public Guid UserId { get; }
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
 
         public GetEmotionalStateQuery(Guid id, Guid userId)
         {

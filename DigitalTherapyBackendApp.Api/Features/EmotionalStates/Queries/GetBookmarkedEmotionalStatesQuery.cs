@@ -11,7 +11,7 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Queries
 {
     public class GetBookmarkedEmotionalStatesQuery : IRequest<GetEmotionalStatesResponse>
     {
-        public Guid UserId { get; }
+        public Guid UserId { get; set; }
 
         public GetBookmarkedEmotionalStatesQuery(Guid userId)
         {

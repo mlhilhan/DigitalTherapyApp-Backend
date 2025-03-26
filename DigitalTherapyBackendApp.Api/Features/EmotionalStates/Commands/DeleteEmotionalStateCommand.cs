@@ -9,8 +9,8 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
 {
     public class DeleteEmotionalStateCommand : IRequest<DeleteEmotionalStateResponse>
     {
-        public Guid Id { get; }
-        public Guid UserId { get; }
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
 
         public DeleteEmotionalStateCommand(Guid id, Guid userId)
         {

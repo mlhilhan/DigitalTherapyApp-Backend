@@ -9,9 +9,9 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Queries
 {
     public class GetEmotionalStateStatisticsQuery : IRequest<GetEmotionalStateStatisticsResponse>
     {
-        public Guid UserId { get; }
-        public DateTime? StartDate { get; }
-        public DateTime? EndDate { get; }
+        public Guid UserId { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         public GetEmotionalStateStatisticsQuery(Guid userId, DateTime? startDate = null, DateTime? endDate = null)
         {

@@ -11,7 +11,7 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
 {
     public class CreateEmotionalStateCommand : IRequest<CreateEmotionalStateResponse>
     {
-        public CreateEmotionalStatePayload Payload { get; }
+        public CreateEmotionalStatePayload Payload { get; set; }
 
         public CreateEmotionalStateCommand(CreateEmotionalStatePayload payload)
         {

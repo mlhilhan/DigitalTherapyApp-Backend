@@ -9,8 +9,8 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
 {
     public class ToggleBookmarkCommand : IRequest<ToggleBookmarkResponse>
     {
-        public Guid Id { get; }
-        public Guid UserId { get; }
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
 
         public ToggleBookmarkCommand(Guid id, Guid userId)
         {
