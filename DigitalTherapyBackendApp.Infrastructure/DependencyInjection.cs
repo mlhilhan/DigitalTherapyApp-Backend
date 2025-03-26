@@ -62,6 +62,7 @@ namespace DigitalTherapyBackendApp.Infrastructure
             services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<AppDbContext>());
             services.AddScoped<IInstitutionProfileRepository, InstitutionProfileRepository>();
             services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
+            services.AddScoped<IEmotionalStateService, EmotionalStateService>();
 
             return services;
         }

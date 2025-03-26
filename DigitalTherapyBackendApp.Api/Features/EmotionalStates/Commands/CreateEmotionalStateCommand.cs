@@ -1,51 +1,89 @@
-﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Responses;
-using DigitalTherapyBackendApp.Domain.Entities;
-using DigitalTherapyBackendApp.Domain.Interfaces;
+﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Payloads;
+using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Responses;
+using DigitalTherapyBackendApp.Application.Dtos;
+using DigitalTherapyBackendApp.Infrastructure.ExternalServices;
 using MediatR;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
 {
-    public class CreateEmotionalStateCommand : IRequest<EmotionalStateResponse>
+    public class CreateEmotionalStateCommand : IRequest<CreateEmotionalStateResponse>
     {
-        public Guid UserId { get; set; }
-        public string Mood { get; set; }
-        public int MoodIntensity { get; set; }
-        public string Notes { get; set; }
+        public CreateEmotionalStatePayload Payload { get; }
+
+        public CreateEmotionalStateCommand(CreateEmotionalStatePayload payload)
+        {
+            Payload = payload;
+        }
     }
 
-
-    public class CreateEmotionalStateCommandHandler : IRequestHandler<CreateEmotionalStateCommand, EmotionalStateResponse>
+    public class CreateEmotionalStateCommandHandler : IRequestHandler<CreateEmotionalStateCommand, CreateEmotionalStateResponse>
     {
-        private readonly IEmotionalStateRepository _emotionalStateRepository;
+        private readonly IEmotionalStateService _emotionalStateService;
 
-        public CreateEmotionalStateCommandHandler(IEmotionalStateRepository emotionalStateRepository)
+        public CreateEmotionalStateCommandHandler(IEmotionalStateService emotionalStateService)
         {
-            _emotionalStateRepository = emotionalStateRepository;
+            _emotionalStateService = emotionalStateService;
         }
 
-        public async Task<EmotionalStateResponse> Handle(CreateEmotionalStateCommand request, CancellationToken cancellationToken)
+        public async Task<CreateEmotionalStateResponse> Handle(CreateEmotionalStateCommand command, CancellationToken cancellationToken)
         {
-            var emotionalState = new EmotionalState
+            try
             {
-                Id = Guid.NewGuid(),
-                UserId = request.UserId,
-                Mood = request.Mood,
-                MoodIntensity = request.MoodIntensity,
-                Notes = request.Notes,
-                CreatedAt = DateTime.UtcNow
-            };
+                var dto = new CreateEmotionalStateDto
+                {
+                    MoodLevel = command.Payload.MoodLevel,
+                    Factors = command.Payload.Factors,
+                    Notes = command.Payload.Notes,
+                    Date = command.Payload.Date,
+                    IsBookmarked = command.Payload.IsBookmarked
+                };
 
-            var result = await _emotionalStateRepository.AddAsync(emotionalState);
+                var newId = await _emotionalStateService.CreateAsync(dto, command.Payload.UserId);
 
-            return new EmotionalStateResponse
+                var createdRecord = await _emotionalStateService.GetByIdAsync(newId, command.Payload.UserId);
+
+                if (createdRecord == null)
+                {
+                    return new CreateEmotionalStateResponse
+                    {
+                        Success = true,
+                        Message = "Mood record created successfully, but unable to retrieve details.",
+                        Data = new EmotionalStateData
+                        {
+                            Id = newId
+                        }
+                    };
+                }
+
+                return new CreateEmotionalStateResponse
+                {
+                    Success = true,
+                    Message = "Mood record created successfully.",
+                    Data = new EmotionalStateData
+                    {
+                        Id = createdRecord.Id,
+                        MoodLevel = createdRecord.MoodLevel,
+                        Factors = createdRecord.Factors,
+                        Notes = createdRecord.Notes,
+                        Date = createdRecord.Date,
+                        IsBookmarked = createdRecord.IsBookmarked,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+            }
+            catch (Exception ex)
             {
-                Id = result.Id,
-                Mood = result.Mood,
-                MoodIntensity = result.MoodIntensity,
-                Notes = result.Notes,
-                CreatedAt = result.CreatedAt
-            };
+                return new CreateEmotionalStateResponse
+                {
+                    Success = false,
+                    Message = $"An error occurred while creating the mood record: {ex.Message}",
+                    ErrorCode = "CREATE_EMOTIONALSTATE_ERROR",
+                    Data = null
+                };
+            }
         }
     }
 }

@@ -9,14 +9,16 @@ namespace DigitalTherapyBackendApp.Domain.Interfaces
 {
     public interface IEmotionalStateRepository
     {
-        Task<EmotionalState> GetByIdAsync(Guid id);
-        Task<IEnumerable<EmotionalState>> GetByUserIdAsync(Guid userId);
-        Task<IEnumerable<EmotionalState>> GetByUserIdAndDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate);
-        Task<EmotionalState> AddAsync(EmotionalState emotionalState);
-        Task UpdateAsync(EmotionalState emotionalState);
-        Task DeleteAsync(Guid id);
-        Task<double> GetAverageMoodIntensityAsync(Guid userId, DateTime startDate, DateTime endDate);
-        Task<List<EmotionalState>> GetLatestEmotionalStatesAsync(Guid userId, int count);
-        Task<Dictionary<string, int>> GetMoodFrequencyAsync(Guid userId, DateTime startDate, DateTime endDate);
+        Task<EmotionalState> GetByIdAsync(Guid id, Guid userId);
+        Task<List<EmotionalState>> GetAllByUserIdAsync(Guid userId);
+        Task<List<EmotionalState>> GetByDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate);
+        Task<List<EmotionalState>> GetBookmarkedAsync(Guid userId);
+        Task<Guid> CreateAsync(EmotionalState emotionalState);
+        Task<bool> UpdateAsync(EmotionalState emotionalState);
+        Task<bool> DeleteAsync(Guid id, Guid userId);
+        Task<bool> ToggleBookmarkAsync(Guid id, Guid userId);
+        Task<Dictionary<DateTime, double>> GetAverageMoodByDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate);
+        Task<Dictionary<string, int>> GetFactorFrequencyAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null);
+        Task<int> GetEntryCountAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null);
     }
 }

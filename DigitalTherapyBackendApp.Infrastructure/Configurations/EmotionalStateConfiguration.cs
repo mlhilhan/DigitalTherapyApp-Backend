@@ -1,11 +1,7 @@
 ﻿using DigitalTherapyBackendApp.Domain.Entities;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Text.Json;
 
 namespace DigitalTherapyBackendApp.Infrastructure.Configurations
 {
@@ -13,26 +9,43 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<EmotionalState> builder)
         {
+            builder.ToTable("EmotionalStates");
+
             builder.HasKey(e => e.Id);
+            builder.Property(e => e.Id)
+                .HasColumnType("uuid")
+                .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.Mood)
-                .IsRequired()
-                .HasMaxLength(50);
+            builder.Property(e => e.UserId).IsRequired().HasColumnType("uuid");
 
-            builder.Property(e => e.MoodIntensity)
-                .IsRequired();
+            builder.Property(e => e.MoodLevel).IsRequired();
 
-            builder.Property(e => e.Notes)
-                .HasMaxLength(1000);
+            // string listesini saklama - jsonb formatında
+            builder.Property(e => e.Factors)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => v != null ? JsonSerializer.Serialize(v, new JsonSerializerOptions()) : null,
+                    v => v != null ? JsonSerializer.Deserialize<List<string>>(v, new JsonSerializerOptions()) : new List<string>());
 
+            builder.Property(e => e.Notes).HasColumnType("text");
+            builder.Property(e => e.Date).IsRequired().HasColumnType("timestamp without time zone");
             builder.Property(e => e.CreatedAt)
-                .IsRequired();
+                .IsRequired()
+                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-            // Relationship
-            builder.HasOne(e => e.User)
-                .WithMany()
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Property(e => e.UpdatedAt).HasColumnType("timestamp without time zone");
+            builder.Property(e => e.IsBookmarked).IsRequired().HasDefaultValue(false);
+            builder.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
+
+            // Indexler
+            builder.HasIndex(e => e.UserId).HasDatabaseName("IX_EmotionalStates_UserId");
+            builder.HasIndex(e => e.Date).HasDatabaseName("IX_EmotionalStates_Date");
+            builder.HasIndex(e => e.IsBookmarked).HasDatabaseName("IX_EmotionalStates_IsBookmarked");
+            builder.HasIndex(e => e.IsDeleted).HasDatabaseName("IX_EmotionalStates_IsDeleted");
+
+            // Composite index - kullanıcı bazlı tarih sıralaması için
+            builder.HasIndex(e => new { e.UserId, e.Date }).HasDatabaseName("IX_EmotionalStates_UserId_Date");
         }
     }
 }

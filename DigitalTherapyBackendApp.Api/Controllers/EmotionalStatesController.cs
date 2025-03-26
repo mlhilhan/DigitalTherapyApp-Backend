@@ -1,116 +1,149 @@
-﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands;
-using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Payloads;
+﻿using DigitalTherapyBackendApp.Api.Controllers;
+using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands;
 using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Queries;
-using MediatR;
+using DigitalTherapyBackendApp.Application.Dtos;
+using DigitalTherapyBackendApp.Infrastructure.ExternalServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace DigitalTherapyBackendApp.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class EmotionalStatesController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly IEmotionalStateService _emotionalStateService;
 
-        public EmotionalStatesController(IMediator mediator)
+        public EmotionalStatesController(IEmotionalStateService emotionalStateService)
         {
-            _mediator = mediator;
+            _emotionalStateService = emotionalStateService;
         }
 
-        [HttpGet("GetUserEmotionalStates")]
-        public async Task<IActionResult> GetUserEmotionalStates([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        private Guid GetUserId()
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            var query = new GetEmotionalStatesQuery
+            try
             {
-                UserId = Guid.Parse(userId),
-                StartDate = startDate,
-                EndDate = endDate
-            };
-
-            var result = await _mediator.Send(query);
-            return Ok(result);
+                var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(userIdString, out var userId))
+                {
+                    return userId;
+                }
+                throw new Exception("Invalid GUID format.");
+            } catch (Exception ex) 
+            {
+                throw new Exception("Error: " + ex.Message);
+            }
         }
 
-        [HttpGet("GetEmotionalStateById/{id}")]
-        public async Task<IActionResult> GetEmotionalStateById(Guid id)
+        [HttpGet("GetEmotionalStates")]
+        public async Task<ActionResult<IEnumerable<EmotionalStateDto>>> GetEmotionalStates([FromQuery] GetEmotionalStatesQuery query)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            var query = new GetEmotionalStateByIdQuery
-            {
-                EmotionalStateId = id,
-                UserId = Guid.Parse(userId)
-            };
+            var userId = query.UserId;
 
-            var result = await _mediator.Send(query);
-            return Ok(result);
+            if (query.StartDate.HasValue && query.EndDate.HasValue)
+            {
+                return Ok(await _emotionalStateService.GetByDateRangeAsync(userId, query.StartDate.Value, query.EndDate.Value));
+            }
+
+            return Ok(await _emotionalStateService.GetAllByUserIdAsync(userId));
+        }
+
+        [HttpGet("GetEmotionalState/{id}")]
+        public async Task<ActionResult<EmotionalStateDto>> GetEmotionalState(Guid id)
+        {
+            var userId = GetUserId();
+            var emotionalState = await _emotionalStateService.GetByIdAsync(id, userId);
+
+            if (emotionalState == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(emotionalState);
+        }
+
+        [HttpGet("GetBookmarked")]
+        public async Task<ActionResult<IEnumerable<EmotionalStateDto>>> GetBookmarked()
+        {
+            var userId = GetUserId();
+            return Ok(await _emotionalStateService.GetBookmarkedAsync(userId));
+        }
+
+        [HttpGet("GetStatistics")]
+        public async Task<ActionResult<EmotionalStateStatisticsDto>> GetStatistics([FromQuery] GetEmotionalStateStatisticsQuery query)
+        {
+            var userId = GetUserId();
+            return Ok(await _emotionalStateService.GetStatisticsAsync(userId, query.StartDate, query.EndDate));
         }
 
         [HttpPost("CreateEmotionalState")]
-        public async Task<IActionResult> CreateEmotionalState([FromBody] CreateEmotionalStatePayload payload)
+        public async Task<ActionResult<int>> CreateEmotionalState([FromBody] CreateEmotionalStateCommand command)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            var command = new CreateEmotionalStateCommand
+            var userId = command.Payload.UserId;
+            var dto = new CreateEmotionalStateDto
             {
-                UserId = Guid.Parse(userId),
-                Mood = payload.Mood,
-                MoodIntensity = payload.MoodIntensity,
-                Notes = payload.Notes
+                MoodLevel = command.Payload.MoodLevel,
+                Factors = command.Payload.Factors,
+                Notes = command.Payload.Notes,
+                Date = command.Payload.Date,
+                IsBookmarked = command.Payload.IsBookmarked
             };
 
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var id = await _emotionalStateService.CreateAsync(dto, userId);
+            return CreatedAtAction(nameof(GetEmotionalState), new { id = id }, id);
         }
 
         [HttpPut("UpdateEmotionalState/{id}")]
-        public async Task<IActionResult> UpdateEmotionalState(Guid id, [FromBody] UpdateEmotionalStatePayload payload)
+        public async Task<IActionResult> UpdateEmotionalState(Guid id, [FromBody] UpdateEmotionalStateCommand command)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            var command = new UpdateEmotionalStateCommand
+            var userId = command.UserId;
+            var dto = new UpdateEmotionalStateDto
             {
-                EmotionalStateId = id,
-                UserId = Guid.Parse(userId),
-                Mood = payload.Mood,
-                MoodIntensity = payload.MoodIntensity,
-                Notes = payload.Notes
+                MoodLevel = command.Payload.MoodLevel,
+                Factors = command.Payload.Factors,
+                Notes = command.Payload.Notes,
+                Date = command.Payload.Date,
+                IsBookmarked = command.Payload.IsBookmarked
             };
 
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var result = await _emotionalStateService.UpdateAsync(id, dto, userId);
+
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
 
         [HttpDelete("DeleteEmotionalState/{id}")]
         public async Task<IActionResult> DeleteEmotionalState(Guid id)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            var command = new DeleteEmotionalStateCommand
-            {
-                EmotionalStateId = id,
-                UserId = Guid.Parse(userId)
-            };
+            var userId = GetUserId();
+            var result = await _emotionalStateService.DeleteAsync(id, userId);
 
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
 
-        [HttpGet("GetEmotionalStateStatistics")]
-        public async Task<IActionResult> GetEmotionalStateStatistics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        [HttpPatch("{id}/ToggleBookmark")]
+        public async Task<IActionResult> ToggleBookmark(Guid id)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            var query = new GetEmotionalStateStatisticsQuery
-            {
-                UserId = Guid.Parse(userId),
-                StartDate = startDate ?? DateTime.UtcNow.AddMonths(-1),
-                EndDate = endDate ?? DateTime.UtcNow
-            };
+            var userId = GetUserId();
+            var result = await _emotionalStateService.ToggleBookmarkAsync(id, userId);
 
-            var result = await _mediator.Send(query);
-            return Ok(result);
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
     }
 }

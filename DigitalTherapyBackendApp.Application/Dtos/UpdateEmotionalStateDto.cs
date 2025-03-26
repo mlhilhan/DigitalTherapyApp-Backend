@@ -1,6 +1,12 @@
-﻿namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Payloads
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DigitalTherapyBackendApp.Application.Dtos
 {
-    public class UpdateEmotionalStatePayload
+    public class UpdateEmotionalStateDto
     {
         public int MoodLevel { get; set; }
         public List<string> Factors { get; set; }

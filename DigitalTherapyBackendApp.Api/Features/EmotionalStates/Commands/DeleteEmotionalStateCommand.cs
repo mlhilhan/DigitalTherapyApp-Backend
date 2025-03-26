@@ -1,35 +1,93 @@
-﻿using DigitalTherapyBackendApp.Domain.Interfaces;
+﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Responses;
+using DigitalTherapyBackendApp.Infrastructure.ExternalServices;
 using MediatR;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
 {
-    public class DeleteEmotionalStateCommand : IRequest<bool>
+    public class DeleteEmotionalStateCommand : IRequest<DeleteEmotionalStateResponse>
     {
-        public Guid EmotionalStateId { get; set; }
-        public Guid UserId { get; set; }
+        public Guid Id { get; }
+        public Guid UserId { get; }
+
+        public DeleteEmotionalStateCommand(Guid id, Guid userId)
+        {
+            Id = id;
+            UserId = userId;
+        }
     }
 
 
-    public class DeleteEmotionalStateCommandHandler : IRequestHandler<DeleteEmotionalStateCommand, bool>
+    public class DeleteEmotionalStateCommandHandler : IRequestHandler<DeleteEmotionalStateCommand, DeleteEmotionalStateResponse>
     {
-        private readonly IEmotionalStateRepository _emotionalStateRepository;
+        private readonly IEmotionalStateService _emotionalStateService;
 
-        public DeleteEmotionalStateCommandHandler(IEmotionalStateRepository emotionalStateRepository)
+        public DeleteEmotionalStateCommandHandler(IEmotionalStateService emotionalStateService)
         {
-            _emotionalStateRepository = emotionalStateRepository;
+            _emotionalStateService = emotionalStateService;
         }
 
-        public async Task<bool> Handle(DeleteEmotionalStateCommand request, CancellationToken cancellationToken)
+        public async Task<DeleteEmotionalStateResponse> Handle(DeleteEmotionalStateCommand command, CancellationToken cancellationToken)
         {
-            var emotionalState = await _emotionalStateRepository.GetByIdAsync(request.EmotionalStateId);
+            try
+            {
+                var existingRecord = await _emotionalStateService.GetByIdAsync(command.Id, command.UserId);
 
-            if (emotionalState == null || emotionalState.UserId != request.UserId)
-                throw new UnauthorizedAccessException("You do not have permission to delete this emotional state record.");
+                if (existingRecord == null)
+                {
+                    return new DeleteEmotionalStateResponse
+                    {
+                        Success = false,
+                        Message = "The specified mood record was not found.",
+                        ErrorCode = "EMOTIONALSTATE_NOT_FOUND",
+                        Data = null
+                    };
+                }
 
-            await _emotionalStateRepository.DeleteAsync(request.EmotionalStateId);
+                var recordData = new EmotionalStateData
+                {
+                    Id = existingRecord.Id,
+                    MoodLevel = existingRecord.MoodLevel,
+                    Factors = existingRecord.Factors,
+                    Notes = existingRecord.Notes,
+                    Date = existingRecord.Date,
+                    IsBookmarked = existingRecord.IsBookmarked,
+                    IsDeleted = true
+                };
 
-            return true;
+                var result = await _emotionalStateService.DeleteAsync(command.Id, command.UserId);
+
+                if (!result)
+                {
+                    return new DeleteEmotionalStateResponse
+                    {
+                        Success = false,
+                        Message = "Failed to delete mood record.",
+                        ErrorCode = "DELETE_EMOTIONALSTATE_FAILED",
+                        Data = null
+                    };
+                }
+
+                return new DeleteEmotionalStateResponse
+                {
+                    Success = true,
+                    Message = "Mood record deleted successfully.",
+                    Data = recordData
+                };
+            }
+            catch (Exception ex)
+            {
+                return new DeleteEmotionalStateResponse
+                {
+                    Success = false,
+                    Message = $"An error occurred while deleting the mood record: {ex.Message}",
+                    ErrorCode = "DELETE_EMOTIONALSTATE_ERROR",
+                    Data = null
+                };
+            }
         }
     }
 }
+   

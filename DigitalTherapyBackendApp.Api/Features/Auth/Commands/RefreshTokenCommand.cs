@@ -48,7 +48,14 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
             if (principal == null)
                 throw new UnauthorizedAccessException("Invalid access token");
 
-            var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
+            var subClaim = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(subClaim))
+            {
+                throw new UnauthorizedAccessException("Token does not contain required 'sub' claim");
+            }
+
+            var userId = Guid.Parse(subClaim);
+            // var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
             var username = principal.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value;
 
             var storedRefreshToken = await _redisService.GetAsync($"user:{userId}:refresh_token");
@@ -87,7 +94,7 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
             };
         }
 
-        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        private ClaimsPrincipal GetPrincipalFromExpiredTokenX(string token)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -118,6 +125,59 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
             catch
             {
                 return null;
+            }
+        }
+
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                throw new SecurityTokenException("Token cannot be null or empty");
+            }
+
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+
+                if (!tokenHandler.CanReadToken(token))
+                {
+                    throw new SecurityTokenException("Invalid token format");
+                }
+
+                var validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = _tokenValidationParameters.ValidateIssuer,
+                    ValidIssuer = _tokenValidationParameters.ValidIssuer,
+                    ValidateAudience = _tokenValidationParameters.ValidateAudience,
+                    ValidAudience = _tokenValidationParameters.ValidAudience,
+                    ValidateIssuerSigningKey = _tokenValidationParameters.ValidateIssuerSigningKey,
+                    IssuerSigningKey = _tokenValidationParameters.IssuerSigningKey,
+                    ValidateLifetime = false
+                };
+
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out var securityToken);
+
+                if (!(securityToken is JwtSecurityToken jwtToken) ||
+                    !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    throw new SecurityTokenException("Invalid token algorithm");
+                }
+
+                if (principal.FindFirst(JwtRegisteredClaimNames.Sub) == null)
+                {
+                    throw new SecurityTokenException("Token must contain 'sub' claim");
+                }
+
+                return principal;
+            }
+            catch (SecurityTokenException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new SecurityTokenException("Token validation failed", ex);
             }
         }
     }

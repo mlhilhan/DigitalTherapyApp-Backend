@@ -1,62 +1,58 @@
-﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands;
-using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Responses;
-using DigitalTherapyBackendApp.Domain.Interfaces;
+﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Responses;
+using DigitalTherapyBackendApp.Infrastructure.ExternalServices;
 using MediatR;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Queries
 {
-    public class GetEmotionalStateStatisticsQuery : IRequest<EmotionalStateStatisticsResponse>
+    public class GetEmotionalStateStatisticsQuery : IRequest<GetEmotionalStateStatisticsResponse>
     {
-        public Guid UserId { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public Guid UserId { get; }
+        public DateTime? StartDate { get; }
+        public DateTime? EndDate { get; }
+
+        public GetEmotionalStateStatisticsQuery(Guid userId, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            UserId = userId;
+            StartDate = startDate;
+            EndDate = endDate;
+        }
     }
 
-
-    public class GetEmotionalStateStatisticsQueryHandler : IRequestHandler<GetEmotionalStateStatisticsQuery, EmotionalStateStatisticsResponse>
+    public class GetEmotionalStateStatisticsQueryHandler : IRequestHandler<GetEmotionalStateStatisticsQuery, GetEmotionalStateStatisticsResponse>
     {
-        private readonly IEmotionalStateRepository _emotionalStateRepository;
+        private readonly IEmotionalStateService _emotionalStateService;
 
-        public GetEmotionalStateStatisticsQueryHandler(IEmotionalStateRepository emotionalStateRepository)
+        public GetEmotionalStateStatisticsQueryHandler(IEmotionalStateService emotionalStateService)
         {
-            _emotionalStateRepository = emotionalStateRepository;
+            _emotionalStateService = emotionalStateService;
         }
 
-        public async Task<EmotionalStateStatisticsResponse> Handle(GetEmotionalStateStatisticsQuery request, CancellationToken cancellationToken)
+        public async Task<GetEmotionalStateStatisticsResponse> Handle(GetEmotionalStateStatisticsQuery query, CancellationToken cancellationToken)
         {
-            // Ortalama duygu yoğunluğunu al
-            var averageMoodIntensity = await _emotionalStateRepository.GetAverageMoodIntensityAsync(
-                request.UserId,
-                request.StartDate,
-                request.EndDate);
-
-            // Duygu frekanslarını al
-            var moodFrequency = await _emotionalStateRepository.GetMoodFrequencyAsync(
-                request.UserId,
-                request.StartDate,
-                request.EndDate);
-
-            // En son eklenen duygu durumunu al
-            var latestEmotionalStates = await _emotionalStateRepository.GetLatestEmotionalStatesAsync(request.UserId, 1);
-            var mostRecentMood = latestEmotionalStates.FirstOrDefault();
-
-            return new EmotionalStateStatisticsResponse
+            try
             {
-                AverageMoodIntensity = averageMoodIntensity,
-                MoodFrequency = moodFrequency,
-                MostRecentMood = mostRecentMood != null
-                    ? new EmotionalStateResponse
-                    {
-                        Id = mostRecentMood.Id,
-                        Mood = mostRecentMood.Mood,
-                        MoodIntensity = mostRecentMood.MoodIntensity,
-                        Notes = mostRecentMood.Notes,
-                        CreatedAt = mostRecentMood.CreatedAt
-                    }
-                    : null,
-                StartDate = request.StartDate,
-                EndDate = request.EndDate
-            };
+                var statistics = await _emotionalStateService.GetStatisticsAsync(query.UserId, query.StartDate, query.EndDate);
+
+                return new GetEmotionalStateStatisticsResponse
+                {
+                    Success = true,
+                    Message = "Mood statistics retrieved successfully.",
+                    Data = statistics
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetEmotionalStateStatisticsResponse
+                {
+                    Success = false,
+                    Message = $"Failed to retrieve mood statistics: {ex.Message}",
+                    ErrorCode = "GET_EMOTIONALSTATE_STATISTICS_ERROR",
+                    Data = null
+                };
+            }
         }
     }
 }

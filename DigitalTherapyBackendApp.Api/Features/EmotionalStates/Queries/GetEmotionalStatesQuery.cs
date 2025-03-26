@@ -1,47 +1,69 @@
 ﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Responses;
-using DigitalTherapyBackendApp.Domain.Interfaces;
+using DigitalTherapyBackendApp.Application.Dtos;
+using DigitalTherapyBackendApp.Infrastructure.ExternalServices;
 using MediatR;
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Queries
 {
-    public class GetEmotionalStatesQuery : IRequest<EmotionalStateListResponse>
+    public class GetEmotionalStatesQuery : IRequest<GetEmotionalStatesResponse>
     {
-        public Guid UserId { get; set; }
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
+        public Guid UserId { get; }
+        public DateTime? StartDate { get; }
+        public DateTime? EndDate { get; }
+
+        public GetEmotionalStatesQuery(Guid userId, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            UserId = userId;
+            StartDate = startDate;
+            EndDate = endDate;
+        }
     }
 
-
-    public class GetEmotionalStatesQueryHandler : IRequestHandler<GetEmotionalStatesQuery, EmotionalStateListResponse>
+    public class GetEmotionalStatesQueryHandler : IRequestHandler<GetEmotionalStatesQuery, GetEmotionalStatesResponse>
     {
-        private readonly IEmotionalStateRepository _emotionalStateRepository;
+        private readonly IEmotionalStateService _emotionalStateService;
 
-        public GetEmotionalStatesQueryHandler(IEmotionalStateRepository emotionalStateRepository)
+        public GetEmotionalStatesQueryHandler(IEmotionalStateService emotionalStateService)
         {
-            _emotionalStateRepository = emotionalStateRepository;
+            _emotionalStateService = emotionalStateService;
         }
 
-        public async Task<EmotionalStateListResponse> Handle(GetEmotionalStatesQuery request, CancellationToken cancellationToken)
+        public async Task<GetEmotionalStatesResponse> Handle(GetEmotionalStatesQuery query, CancellationToken cancellationToken)
         {
-            var emotionalStates = request.StartDate.HasValue && request.EndDate.HasValue
-                ? await _emotionalStateRepository.GetByUserIdAndDateRangeAsync(
-                    request.UserId,
-                    request.StartDate.Value,
-                    request.EndDate.Value)
-                : await _emotionalStateRepository.GetByUserIdAsync(request.UserId);
-
-            return new EmotionalStateListResponse
+            try
             {
-                EmotionalStates = emotionalStates.Select(e => new EmotionalStateResponse
+                List<EmotionalStateDto> emotionalStates;
+
+                if (query.StartDate.HasValue && query.EndDate.HasValue)
                 {
-                    Id = e.Id,
-                    Mood = e.Mood,
-                    MoodIntensity = e.MoodIntensity,
-                    Notes = e.Notes,
-                    CreatedAt = e.CreatedAt
-                }).ToList()
-            };
+                    emotionalStates = await _emotionalStateService.GetByDateRangeAsync(query.UserId, query.StartDate.Value, query.EndDate.Value);
+                }
+                else
+                {
+                    emotionalStates = await _emotionalStateService.GetAllByUserIdAsync(query.UserId);
+                }
+
+                return new GetEmotionalStatesResponse
+                {
+                    Success = true,
+                    Message = "Mood records retrieved successfully.",
+                    Data = emotionalStates
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetEmotionalStatesResponse
+                {
+                    Success = false,
+                    Message = $"Failed to retrieve mood records: {ex.Message}",
+                    ErrorCode = "GET_EMOTIONALSTATES_ERROR",
+                    Data = null
+                };
+            }
         }
     }
 }

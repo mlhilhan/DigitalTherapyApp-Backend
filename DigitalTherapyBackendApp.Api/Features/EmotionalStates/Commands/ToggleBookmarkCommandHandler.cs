@@ -1,6 +1,4 @@
-﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Payloads;
-using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Responses;
-using DigitalTherapyBackendApp.Application.Dtos;
+﻿using DigitalTherapyBackendApp.Api.Features.EmotionalStates.Responses;
 using DigitalTherapyBackendApp.Infrastructure.ExternalServices;
 using MediatR;
 using System;
@@ -9,30 +7,28 @@ using System.Threading.Tasks;
 
 namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
 {
-    public class UpdateEmotionalStateCommand : IRequest<UpdateEmotionalStateResponse>
+    public class ToggleBookmarkCommand : IRequest<ToggleBookmarkResponse>
     {
         public Guid Id { get; }
         public Guid UserId { get; }
-        public UpdateEmotionalStatePayload Payload { get; }
 
-        public UpdateEmotionalStateCommand(Guid id, UpdateEmotionalStatePayload payload, Guid userId)
+        public ToggleBookmarkCommand(Guid id, Guid userId)
         {
             Id = id;
-            Payload = payload;
             UserId = userId;
         }
     }
 
-    public class UpdateEmotionalStateCommandHandler : IRequestHandler<UpdateEmotionalStateCommand, UpdateEmotionalStateResponse>
+    public class ToggleBookmarkCommandHandler : IRequestHandler<ToggleBookmarkCommand, ToggleBookmarkResponse>
     {
         private readonly IEmotionalStateService _emotionalStateService;
 
-        public UpdateEmotionalStateCommandHandler(IEmotionalStateService emotionalStateService)
+        public ToggleBookmarkCommandHandler(IEmotionalStateService emotionalStateService)
         {
             _emotionalStateService = emotionalStateService;
         }
 
-        public async Task<UpdateEmotionalStateResponse> Handle(UpdateEmotionalStateCommand command, CancellationToken cancellationToken)
+        public async Task<ToggleBookmarkResponse> Handle(ToggleBookmarkCommand command, CancellationToken cancellationToken)
         {
             try
             {
@@ -40,7 +36,7 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
 
                 if (existingRecord == null)
                 {
-                    return new UpdateEmotionalStateResponse
+                    return new ToggleBookmarkResponse
                     {
                         Success = false,
                         Message = "The specified mood record was not found.",
@@ -49,34 +45,29 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
                     };
                 }
 
-                var dto = new UpdateEmotionalStateDto
-                {
-                    MoodLevel = command.Payload.MoodLevel,
-                    Factors = command.Payload.Factors,
-                    Notes = command.Payload.Notes,
-                    Date = command.Payload.Date,
-                    IsBookmarked = command.Payload.IsBookmarked
-                };
+                bool currentBookmarkStatus = existingRecord.IsBookmarked;
 
-                var result = await _emotionalStateService.UpdateAsync(command.Id, dto, command.UserId);
+                var result = await _emotionalStateService.ToggleBookmarkAsync(command.Id, command.UserId);
 
                 if (!result)
                 {
-                    return new UpdateEmotionalStateResponse
+                    return new ToggleBookmarkResponse
                     {
                         Success = false,
-                        Message = "Failed to update mood record.",
-                        ErrorCode = "UPDATE_EMOTIONALSTATE_FAILED",
+                        Message = "Failed to change bookmark status.",
+                        ErrorCode = "TOGGLE_BOOKMARK_FAILED",
                         Data = null
                     };
                 }
 
                 var updatedRecord = await _emotionalStateService.GetByIdAsync(command.Id, command.UserId);
 
-                return new UpdateEmotionalStateResponse
+                return new ToggleBookmarkResponse
                 {
                     Success = true,
-                    Message = "Mood record updated successfully.",
+                    Message = currentBookmarkStatus
+                        ? "Bookmark removed successfully."
+                        : "Bookmark added successfully.",
                     Data = new EmotionalStateData
                     {
                         Id = updatedRecord.Id,
@@ -91,11 +82,11 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
             }
             catch (Exception ex)
             {
-                return new UpdateEmotionalStateResponse
+                return new ToggleBookmarkResponse
                 {
                     Success = false,
-                    Message = $"An error occurred while updating the mood record: {ex.Message}",
-                    ErrorCode = "UPDATE_EMOTIONALSTATE_ERROR",
+                    Message = $"An error occurred while changing bookmark status: {ex.Message}",
+                    ErrorCode = "TOGGLE_BOOKMARK_ERROR",
                     Data = null
                 };
             }
