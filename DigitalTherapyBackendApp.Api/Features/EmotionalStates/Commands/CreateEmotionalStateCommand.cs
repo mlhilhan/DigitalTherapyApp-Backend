@@ -12,10 +12,12 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
     public class CreateEmotionalStateCommand : IRequest<CreateEmotionalStateResponse>
     {
         public CreateEmotionalStatePayload Payload { get; set; }
+        public Guid UserId { get; set; }
 
-        public CreateEmotionalStateCommand(CreateEmotionalStatePayload payload)
+        public CreateEmotionalStateCommand(CreateEmotionalStatePayload payload, Guid userId)
         {
             Payload = payload;
+            UserId = userId;
         }
     }
 
@@ -41,9 +43,9 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
                     IsBookmarked = command.Payload.IsBookmarked
                 };
 
-                var newId = await _emotionalStateService.CreateAsync(dto, command.Payload.UserId);
+                var newId = await _emotionalStateService.CreateAsync(dto, command.UserId);
 
-                var createdRecord = await _emotionalStateService.GetByIdAsync(newId, command.Payload.UserId);
+                var createdRecord = await _emotionalStateService.GetByIdAsync(newId, command.UserId);
 
                 if (createdRecord == null)
                 {

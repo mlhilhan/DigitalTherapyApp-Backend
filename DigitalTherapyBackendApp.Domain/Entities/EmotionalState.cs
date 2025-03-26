@@ -11,7 +11,7 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
         public int MoodLevel { get; set; }
-        public List<string> Factors { get; set; }
+        public List<string>? Factors { get; set; }
         public string? Notes { get; set; }
         public DateTime Date { get; set; }
         public DateTime CreatedAt { get; set; }

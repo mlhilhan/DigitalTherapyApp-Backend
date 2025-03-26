@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace DigitalTherapyBackendApp.Api.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Patient")]
     [ApiController]
     [Route("api/[controller]")]
     public class EmotionalStatesController : ControllerBase
@@ -72,7 +72,7 @@ namespace DigitalTherapyBackendApp.Api.Controllers
         [HttpPost("CreateEmotionalState")]
         public async Task<IActionResult> CreateEmotionalState([FromBody] CreateEmotionalStatePayload payload)
         {
-            var command = new CreateEmotionalStateCommand(payload);
+            var command = new CreateEmotionalStateCommand(payload, GetUserId());
             var result = await _mediator.Send(command);
 
             if (!result.Success)

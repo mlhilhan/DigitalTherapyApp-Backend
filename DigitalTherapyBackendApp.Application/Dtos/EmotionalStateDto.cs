@@ -10,7 +10,7 @@ namespace DigitalTherapyBackendApp.Application.Dtos
     {
         public Guid Id { get; set; }
         public int MoodLevel { get; set; }
-        public List<string> Factors { get; set; }
+        public List<string>? Factors { get; set; }
         public string? Notes { get; set; }
         public DateTime Date { get; set; }
         public bool IsBookmarked { get; set; }
