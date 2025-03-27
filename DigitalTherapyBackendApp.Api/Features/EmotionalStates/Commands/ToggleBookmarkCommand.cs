@@ -41,8 +41,7 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
                         Success = false,
                         Message = "The specified mood record was not found.",
                         ErrorCode = "EMOTIONALSTATE_NOT_FOUND",
-                        Data = null,
-                        IsAdded = null
+                        Data = null
                     };
                 }
 
@@ -57,8 +56,7 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
                         Success = false,
                         Message = "Failed to change bookmark status.",
                         ErrorCode = "TOGGLE_BOOKMARK_FAILED",
-                        Data = null,
-                        IsAdded = null
+                        Data = null
                     };
                 }
 
@@ -70,7 +68,6 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
                     Message = currentBookmarkStatus
                         ? "Bookmark removed successfully."
                         : "Bookmark added successfully.",
-                    IsAdded = !currentBookmarkStatus,
                     Data = new EmotionalStateData
                     {
                         Id = updatedRecord.Id,
@@ -90,8 +87,7 @@ namespace DigitalTherapyBackendApp.Api.Features.EmotionalStates.Commands
                     Success = false,
                     Message = $"An error occurred while changing bookmark status: {ex.Message}",
                     ErrorCode = "TOGGLE_BOOKMARK_ERROR",
-                    Data = null,
-                    IsAdded = null
+                    Data = null
                 };
             }
         }
