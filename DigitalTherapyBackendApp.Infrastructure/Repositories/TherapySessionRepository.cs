@@ -22,7 +22,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
         {
             return await _context.TherapySessions
                 .Include(s => s.Patient)
-                .Include(s => s.Therapist)
+                .Include(s => s.Psychologist)
                 .Include(s => s.Relationship)
                 .Include(s => s.Messages)
                 .Include(s => s.EmotionalStates)
@@ -32,19 +32,19 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
         public async Task<IEnumerable<TherapySession>> GetByPatientIdAsync(Guid patientId)
         {
             return await _context.TherapySessions
-                .Include(s => s.Therapist)
+                .Include(s => s.Psychologist)
                 .Include(s => s.Relationship)
                 .Where(s => s.PatientId == patientId)
                 .OrderByDescending(s => s.StartTime)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<TherapySession>> GetByTherapistIdAsync(Guid therapistId)
+        public async Task<IEnumerable<TherapySession>> GetByPsychologistIdAsync(Guid psychologistId)
         {
             return await _context.TherapySessions
                 .Include(s => s.Patient)
                 .Include(s => s.Relationship)
-                .Where(s => s.PsychologistId == therapistId)
+                .Where(s => s.PsychologistId == psychologistId)
                 .OrderByDescending(s => s.StartTime)
                 .ToListAsync();
         }
@@ -53,10 +53,10 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
         {
             return await _context.TherapySessions
                 .Include(s => s.Patient)
-                .Include(s => s.Therapist)
+                .Include(s => s.Psychologist)
                 .Include(s => s.Relationship)
                 .Where(s => (s.PatientId == userId || s.PsychologistId == userId) &&
-                           s.Status != "Completed" && s.Status != "Cancelled")
+                           s.Status != SessionStatus.Completed && s.Status != SessionStatus.Cancelled)
                 .OrderByDescending(s => s.StartTime)
                 .ToListAsync();
         }
@@ -74,7 +74,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
         public async Task<IEnumerable<TherapySession>> GetHumanSessionsByPatientIdAsync(Guid patientId)
         {
             return await _context.TherapySessions
-                .Include(s => s.Therapist)
+                .Include(s => s.Psychologist)
                 .Include(s => s.Relationship)
                 .Include(s => s.Messages)
                 .Include(s => s.EmotionalStates)
@@ -87,7 +87,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
         {
             return await _context.TherapySessions
                 .Include(s => s.Patient)
-                .Include(s => s.Therapist)
+                .Include(s => s.Psychologist)
                 .Include(s => s.Messages)
                 .Where(s => s.RelationshipId == relationshipId)
                 .OrderByDescending(s => s.StartTime)
@@ -98,7 +98,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
         {
             return await _context.TherapySessions
                 .Include(s => s.Patient)
-                .Include(s => s.Therapist)
+                .Include(s => s.Psychologist)
                 .Where(s => s.StartTime >= startDate && s.StartTime <= endDate)
                 .OrderByDescending(s => s.StartTime)
                 .ToListAsync();
@@ -109,9 +109,9 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
             if (isPatient)
             {
                 return await _context.TherapySessions
-                    .Include(s => s.Therapist)
+                    .Include(s => s.Psychologist)
                     .Include(s => s.Messages)
-                    .Where(s => s.PatientId == userId && s.Status == "Completed")
+                    .Where(s => s.PatientId == userId && s.Status == SessionStatus.Completed)
                     .OrderByDescending(s => s.StartTime)
                     .ToListAsync();
             }
@@ -120,7 +120,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
                 return await _context.TherapySessions
                     .Include(s => s.Patient)
                     .Include(s => s.Messages)
-                    .Where(s => s.PsychologistId == userId && s.Status == "Completed")
+                    .Where(s => s.PsychologistId == userId && s.Status == SessionStatus.Completed)
                     .OrderByDescending(s => s.StartTime)
                     .ToListAsync();
             }
@@ -177,7 +177,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<bool> UpdateSessionStatusAsync(Guid id, string status)
+        public async Task<bool> UpdateSessionStatusAsync(Guid id, SessionStatus status)
         {
             var session = await _context.TherapySessions.FindAsync(id);
             if (session == null)
@@ -185,13 +185,58 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
 
             session.Status = status;
 
-            if (status == "Completed" && session.EndTime == null)
+            if (status == SessionStatus.Completed && session.EndTime == null)
             {
                 session.EndTime = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<TherapySession> GetActiveAiSessionAsync(Guid patientId)
+        {
+            return await _context.TherapySessions
+                .Include(s => s.Messages)
+                .Where(s => s.PatientId == patientId &&
+                       s.IsAiSession &&
+                       s.IsActive &&
+                       s.Status == SessionStatus.InProgress)
+                .OrderByDescending(s => s.StartTime)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> CloseAiSessionAsync(Guid sessionId)
+        {
+            var session = await _context.TherapySessions.FindAsync(sessionId);
+            if (session == null || !session.IsAiSession)
+                return false;
+
+            session.IsActive = false;
+            session.Status = SessionStatus.Completed;
+            session.EndTime = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<TherapySession> CreateAiSessionAsync(Guid patientId)
+        {
+            var newSession = new TherapySession
+            {
+                Id = Guid.NewGuid(),
+                PatientId = patientId,
+                IsAiSession = true,
+                StartTime = DateTime.UtcNow,
+                Status = SessionStatus.InProgress,
+                Type = SessionType.Text,
+                IsActive = true
+            };
+
+            await _context.TherapySessions.AddAsync(newSession);
+            await _context.SaveChangesAsync();
+
+            return newSession;
         }
     }
 }

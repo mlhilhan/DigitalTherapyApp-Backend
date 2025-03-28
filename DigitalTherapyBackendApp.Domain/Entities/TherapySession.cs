@@ -9,20 +9,38 @@ namespace DigitalTherapyBackendApp.Domain.Entities
     public class TherapySession
     {
         public Guid Id { get; set; }
-        public Guid PatientId { get; set; }
-        public Guid? PsychologistId { get; set; } // Null olabilir (AI destekli oturumlar için)
+        public Guid PatientId { get; set; } // Hasta kullanıcı ID'si
+        public Guid? PsychologistId { get; set; } // Psikolog ID'si (AI için null)
         public Guid? RelationshipId { get; set; } // Hasta-Psikolog ilişkisi (AI oturumları için null)
-        public bool IsAiSession { get; set; } // AI ile yapılan bir seans mı?
+        public bool IsAiSession { get; set; } // AI oturumu mu?
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
-        public string Summary { get; set; }
-        public string Status { get; set; } // Scheduled, InProgress, Completed
-        public string SessionType { get; set; } // Video, Audio, Text
+        public SessionStatus Status { get; set; } // Enum: Scheduled, InProgress, Completed, Cancelled
+        public SessionType Type { get; set; } // Enum: Text, Video, Voice
+        public bool IsActive { get; set; }
         public string MeetingLink { get; set; } // Video/ses görüşmeleri için link
-        public User Patient { get; set; }
-        public User Therapist { get; set; }
+
+        // Navigation properties
+        public virtual PatientProfile Patient { get; set; }
+        public virtual PsychologistProfile Psychologist { get; set; }
+        public virtual ICollection<SessionMessage> Messages { get; set; } = new List<SessionMessage>();
         public TherapistPatientRelationship Relationship { get; set; }
-        public ICollection<SessionMessage> Messages { get; set; } = new List<SessionMessage>();
         public ICollection<EmotionalState> EmotionalStates { get; set; } = new List<EmotionalState>();
+    }
+
+
+    public enum SessionStatus
+    {
+        Scheduled,  // Randevu alındı, henüz başlamadı
+        InProgress, // Seans devam ediyor
+        Completed,  // Seans tamamlandı
+        Cancelled   // Seans iptal edildi
+    }
+
+    public enum SessionType
+    {
+        Text,  // Yazılı mesajlaşma
+        Video, // Görüntülü görüşme
+        Voice  // Sesli görüşme
     }
 }

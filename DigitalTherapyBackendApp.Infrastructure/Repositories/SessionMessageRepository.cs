@@ -22,7 +22,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
         {
             return await _context.SessionMessages
                 .Include(m => m.Sender)
-                .Include(m => m.Session)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
@@ -35,47 +34,82 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<SessionMessage>> GetBySenderIdAsync(Guid senderId)
-        {
-            return await _context.SessionMessages
-                .Include(m => m.Session)
-                .Where(m => m.SenderId == senderId)
-                .OrderByDescending(m => m.SentAt)
-                .ToListAsync();
-        }
-
-        public async Task<SessionMessage> AddAsync(SessionMessage sessionMessage)
-        {
-            await _context.SessionMessages.AddAsync(sessionMessage);
-            await _context.SaveChangesAsync();
-            return sessionMessage;
-        }
-
-        public async Task UpdateAsync(SessionMessage sessionMessage)
-        {
-            _context.SessionMessages.Update(sessionMessage);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAsync(Guid id)
-        {
-            var sessionMessage = await _context.SessionMessages.FindAsync(id);
-            if (sessionMessage != null)
-            {
-                _context.SessionMessages.Remove(sessionMessage);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task<IEnumerable<SessionMessage>> GetSessionHistoryAsync(Guid sessionId, int limit, int offset)
+        public async Task<IEnumerable<SessionMessage>> GetRecentBySessionIdAsync(Guid sessionId, int count = 50)
         {
             return await _context.SessionMessages
                 .Include(m => m.Sender)
                 .Where(m => m.SessionId == sessionId)
-                .OrderByDescending(m => m.SentAt)
-                .Skip(offset)
-                .Take(limit)
+                .OrderBy(m => m.SentAt)
+                .Take(count)
                 .ToListAsync();
+        }
+
+        public async Task<SessionMessage> AddAsync(SessionMessage message)
+        {
+            await _context.SessionMessages.AddAsync(message);
+            await _context.SaveChangesAsync();
+            return message;
+        }
+
+        public async Task<SessionMessage> AddUserMessageAsync(Guid sessionId, Guid userId, string content)
+        {
+            var message = new SessionMessage
+            {
+                Id = Guid.NewGuid(),
+                SessionId = sessionId,
+                SenderId = userId,
+                Content = content,
+                SentAt = DateTime.UtcNow,
+                IsAiGenerated = false
+            };
+
+            await _context.SessionMessages.AddAsync(message);
+            await _context.SaveChangesAsync();
+
+            return message;
+        }
+
+        public async Task<SessionMessage> AddAiMessageAsync(Guid sessionId, Guid userId, string content)
+        {
+            var message = new SessionMessage
+            {
+                Id = Guid.NewGuid(),
+                SessionId = sessionId,
+                SenderId = userId, // AI mesajları için de bir sistem kullanıcı ID'si kullanılacak
+                Content = content,
+                SentAt = DateTime.UtcNow,
+                IsAiGenerated = true
+            };
+
+            await _context.SessionMessages.AddAsync(message);
+            await _context.SaveChangesAsync();
+
+            return message;
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var message = await _context.SessionMessages.FindAsync(id);
+            if (message != null)
+            {
+                _context.SessionMessages.Remove(message);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<int> GetMessageCountAsync(Guid sessionId)
+        {
+            return await _context.SessionMessages
+                .Where(m => m.SessionId == sessionId)
+                .CountAsync();
+        }
+
+        public async Task<SessionMessage> GetLastMessageAsync(Guid sessionId)
+        {
+            return await _context.SessionMessages
+                .Where(m => m.SessionId == sessionId)
+                .OrderByDescending(m => m.SentAt)
+                .FirstOrDefaultAsync();
         }
     }
 }

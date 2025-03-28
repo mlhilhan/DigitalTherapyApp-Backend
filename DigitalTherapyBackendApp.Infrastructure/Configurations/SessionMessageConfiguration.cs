@@ -1,11 +1,6 @@
 ﻿using DigitalTherapyBackendApp.Domain.Entities;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DigitalTherapyBackendApp.Infrastructure.Configurations
 {
@@ -13,31 +8,21 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<SessionMessage> builder)
         {
-            builder.HasKey(m => m.Id);
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Content).IsRequired();
+            builder.Property(x => x.SentAt).IsRequired();
+            builder.Property(x => x.IsAiGenerated).IsRequired();
 
-            builder.Property(m => m.Content)
-                .IsRequired()
-                .HasMaxLength(4000);
-
-            builder.Property(m => m.SentAt)
-                .IsRequired();
-
-            builder.Property(m => m.IsAiGenerated)
-                .IsRequired()
-                .HasDefaultValue(false);
-
-            // Relationships
-
-            // Session relationship
-            builder.HasOne(m => m.Session)
+            // Session ile ilişki
+            builder.HasOne(x => x.Session)
                 .WithMany(s => s.Messages)
-                .HasForeignKey(m => m.SessionId)
+                .HasForeignKey(x => x.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Sender relationship
-            builder.HasOne(m => m.Sender)
+            // Gönderen (User) ile ilişki
+            builder.HasOne(x => x.Sender)
                 .WithMany()
-                .HasForeignKey(m => m.SenderId)
+                .HasForeignKey(x => x.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

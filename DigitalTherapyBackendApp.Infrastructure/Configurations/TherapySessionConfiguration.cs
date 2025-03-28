@@ -1,11 +1,6 @@
 ﻿using DigitalTherapyBackendApp.Domain.Entities;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DigitalTherapyBackendApp.Infrastructure.Configurations
 {
@@ -13,39 +8,48 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<TherapySession> builder)
         {
-            // Tablo adı
             builder.ToTable("TherapySessions");
 
-            // Primary key
-            builder.HasKey(t => t.Id);
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.IsAiSession).IsRequired();
+            builder.Property(x => x.StartTime).IsRequired();
+            builder.Property(x => x.Status).IsRequired().HasConversion<string>();
+            builder.Property(x => x.Type).IsRequired().HasConversion<string>();
+            builder.Property(x => x.IsActive).IsRequired();
+            builder.Property(x => x.MeetingLink).HasMaxLength(1000);
 
-            // Properties
-            builder.Property(t => t.Id).ValueGeneratedOnAdd();
-            builder.Property(t => t.PatientId).IsRequired();
-            builder.Property(t => t.IsAiSession).IsRequired().HasDefaultValue(false);
-            builder.Property(t => t.StartTime).IsRequired();
-            builder.Property(t => t.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Scheduled");
-            builder.Property(t => t.Summary).HasMaxLength(2000);
-            builder.Property(t => t.SessionType).HasMaxLength(20).HasDefaultValue("Text");
-            builder.Property(t => t.MeetingLink).HasMaxLength(500);
 
-            // İlişkiler
-            builder.HasOne(t => t.Patient)
+            // Hasta ile ilişki (Required)
+            builder.HasOne(x => x.Patient)
                 .WithMany()
-                .HasForeignKey(t => t.PatientId)
+                .HasForeignKey(x => x.PatientId)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(t => t.Therapist)
+            // Psikolog ile ilişki (AI oturumları için null)
+            builder.HasOne(x => x.Psychologist)
                 .WithMany()
-                .HasForeignKey(t => t.PsychologistId)
+                .HasForeignKey(x => x.PsychologistId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(t => t.Relationship)
+            // Terapi ilişkisi (AI oturumları için null)
+            builder.HasOne(x => x.Relationship)
                 .WithMany()
-                .HasForeignKey(t => t.RelationshipId)
+                .HasForeignKey(x => x.RelationshipId)
                 .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Oturum mesajları ile ilişki
+            builder.HasMany(x => x.Messages)
+                .WithOne(m => m.Session)
+                .HasForeignKey(m => m.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Duygusal durum kayıtları ile ilişki
+            builder.HasMany(x => x.EmotionalStates)
+                .WithOne()
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

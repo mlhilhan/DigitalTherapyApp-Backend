@@ -14,7 +14,9 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public string Content { get; set; }
         public DateTime SentAt { get; set; }
         public bool IsAiGenerated { get; set; }
-        public TherapySession Session { get; set; }
-        public User Sender { get; set; }
+
+        // Navigation properties
+        public virtual TherapySession Session { get; set; }
+        public virtual User Sender { get; set; }
     }
 }
