@@ -22,6 +22,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
             // Hasta ile ilişki (Required)
             builder.HasOne(x => x.Patient)
                 .WithMany()
+                .HasPrincipalKey(p => p.UserId)
                 .HasForeignKey(x => x.PatientId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);

@@ -18,7 +18,7 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public SessionStatus Status { get; set; } // Enum: Scheduled, InProgress, Completed, Cancelled
         public SessionType Type { get; set; } // Enum: Text, Video, Voice
         public bool IsActive { get; set; }
-        public string MeetingLink { get; set; } // Video/ses görüşmeleri için link
+        public string? MeetingLink { get; set; } // Video/ses görüşmeleri için link
 
         // Navigation properties
         public virtual PatientProfile Patient { get; set; }

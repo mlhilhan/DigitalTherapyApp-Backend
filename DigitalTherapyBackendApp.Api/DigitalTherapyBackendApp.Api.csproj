@@ -27,15 +27,4 @@
     <ProjectReference Include="..\DigitalTherapyBackendApp.Infrastructure\DigitalTherapyBackendApp.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\TherapySessions\Commands\" />
-    <Folder Include="Features\TherapySessions\Payloads\" />
-    <Folder Include="Features\TherapySessions\Queries\" />
-    <Folder Include="Features\TherapySessions\Responses\" />
-    <Folder Include="Features\SessionMessages\Commands\" />
-    <Folder Include="Features\SessionMessages\Payloads\" />
-    <Folder Include="Features\SessionMessages\Queries\" />
-    <Folder Include="Features\SessionMessages\Responses\" />
-  </ItemGroup>
-
 </Project>

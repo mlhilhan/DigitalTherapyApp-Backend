@@ -94,40 +94,6 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
             };
         }
 
-        private ClaimsPrincipal GetPrincipalFromExpiredTokenX(string token)
-        {
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateAudience = _tokenValidationParameters.ValidateAudience,
-                ValidateIssuer = _tokenValidationParameters.ValidateIssuer,
-                ValidAudience = _tokenValidationParameters.ValidAudience,
-                ValidIssuer = _tokenValidationParameters.ValidIssuer,
-                ValidateIssuerSigningKey = _tokenValidationParameters.ValidateIssuerSigningKey,
-                IssuerSigningKey = _tokenValidationParameters.IssuerSigningKey,
-                ValidateLifetime = false // Önemli: Token süresi geçmiş olsa bile doğrulayabilmek için
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken securityToken;
-
-            try
-            {
-                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-                var jwtSecurityToken = securityToken as JwtSecurityToken;
-
-                if (jwtSecurityToken == null ||
-                    !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
-                        StringComparison.InvariantCultureIgnoreCase))
-                    throw new SecurityTokenException("Invalid token");
-
-                return principal;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
 
         private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {

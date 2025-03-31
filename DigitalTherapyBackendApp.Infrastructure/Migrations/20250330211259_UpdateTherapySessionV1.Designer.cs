@@ -3,6 +3,7 @@ using System;
 using DigitalTherapyBackendApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DigitalTherapyBackendApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250330211259_UpdateTherapySessionV1")]
+    partial class UpdateTherapySessionV1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -239,7 +242,16 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("UserId1")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId1")
+                        .IsUnique();
 
                     b.ToTable("PatientProfiles", (string)null);
                 });
@@ -565,9 +577,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("PatientProfileId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
@@ -595,8 +604,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
-
-                    b.HasIndex("PatientProfileId");
 
                     b.HasIndex("RoleId");
 
@@ -774,6 +781,10 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", null)
+                        .WithOne("PatientProfile")
+                        .HasForeignKey("DigitalTherapyBackendApp.Domain.Entities.PatientProfile", "UserId1");
+
                     b.Navigation("User");
                 });
 
@@ -849,7 +860,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.HasOne("DigitalTherapyBackendApp.Domain.Entities.PatientProfile", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
-                        .HasPrincipalKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -872,17 +882,11 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.User", b =>
                 {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.PatientProfile", "PatientProfile")
-                        .WithMany()
-                        .HasForeignKey("PatientProfileId");
-
                     b.HasOne("DigitalTherapyBackendApp.Domain.Entities.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("PatientProfile");
 
                     b.Navigation("Role");
                 });
@@ -973,6 +977,11 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Navigation("EmotionalStates");
 
                     b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.User", b =>
+                {
+                    b.Navigation("PatientProfile");
                 });
 #pragma warning restore 612, 618
         }

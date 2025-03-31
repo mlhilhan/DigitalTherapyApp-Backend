@@ -230,7 +230,8 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
                 StartTime = DateTime.UtcNow,
                 Status = SessionStatus.InProgress,
                 Type = SessionType.Text,
-                IsActive = true
+                IsActive = true,
+                MeetingLink = ""
             };
 
             await _context.TherapySessions.AddAsync(newSession);
