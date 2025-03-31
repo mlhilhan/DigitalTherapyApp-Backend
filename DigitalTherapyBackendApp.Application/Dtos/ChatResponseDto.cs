@@ -11,5 +11,6 @@ namespace DigitalTherapyBackendApp.Application.Dtos
         public string Message { get; set; }
         public DateTime Timestamp { get; set; }
         public Guid? SessionId { get; set; }
+        public bool SessionActivated { get; set; }
     }
 }

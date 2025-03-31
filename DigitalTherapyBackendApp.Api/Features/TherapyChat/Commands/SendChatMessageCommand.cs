@@ -35,54 +35,78 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapySessions.Commands
         private readonly IAiService _aiService;
         private readonly ILogger<SendChatMessageCommandHandler> _logger;
         private readonly ITherapySessionRepository _therapySessionRepository;
+        private readonly ISessionMessageRepository _sessionMessageRepository;
+        private readonly IConfiguration _configuration;
 
         public SendChatMessageCommandHandler(
             IAiService aiService,
             ILogger<SendChatMessageCommandHandler> logger,
-            ITherapySessionRepository therapySessionRepository)
+            ITherapySessionRepository therapySessionRepository,
+            ISessionMessageRepository sessionMessageRepository,
+            IConfiguration configuration)
         {
             _aiService = aiService;
             _logger = logger;
             _therapySessionRepository = therapySessionRepository;
+            _sessionMessageRepository = sessionMessageRepository;
+            _configuration = configuration;
         }
 
         public async Task<SendChatMessageResponse> Handle(SendChatMessageCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                // Mesaj kontrolü
                 if (string.IsNullOrWhiteSpace(request.Message))
                 {
                     return new SendChatMessageResponse
                     {
                         Success = false,
-                        Message = "Mesaj boş olamaz"
+                        Message = "Message cannot be empty."
                     };
                 }
 
-                // Oturum kontrolü - belirtilen bir oturum ID'si varsa kullan, yoksa aktif veya yeni oturum oluştur
                 TherapySession session;
                 if (request.SessionId.HasValue)
                 {
-                    // Belirtilen oturumu al ve kullanıcıya ait olduğunu kontrol et
                     session = await _therapySessionRepository.GetByIdAsync(request.SessionId.Value);
                     if (session == null || session.PatientId != request.UserId)
                     {
                         return new SendChatMessageResponse
                         {
                             Success = false,
-                            Message = "Belirtilen oturum bulunamadı veya erişim izniniz yok"
+                            Message = "The specified session could not be found or you do not have permission to access it."
                         };
+                    }
+
+                    if (!session.IsActive)
+                    {
+                        var activeSessions = await _therapySessionRepository.GetActiveSessionsAsync(request.UserId);
+                        foreach (var activeSession in activeSessions)
+                        {
+                            if (activeSession.Id != session.Id)
+                            {
+                                activeSession.IsActive = false;
+                                activeSession.EndTime = DateTime.UtcNow;
+                                await _therapySessionRepository.UpdateAsync(activeSession);
+                            }
+                        }
+
+                        session.IsActive = true;
+                        if (session.EndTime.HasValue)
+                        {
+                            session.EndTime = null;
+                        }
+
+                        await _therapySessionRepository.UpdateAsync(session);
+                        _logger.LogInformation($"Session {session.Id} activated automatically when sending a message");
                     }
                 }
                 else
                 {
-                    // Aktif oturumu al veya yeni oluştur
                     session = await _therapySessionRepository.GetActiveAiSessionAsync(request.UserId)
                            ?? await _therapySessionRepository.CreateAiSessionAsync(request.UserId);
                 }
 
-                // AI yanıtını al
                 string aiResponse = await _aiService.GetChatResponseAsync(request.UserId, request.Message);
 
                 return new SendChatMessageResponse
@@ -94,7 +118,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapySessions.Commands
                         Timestamp = DateTime.UtcNow,
                         SessionId = session.Id
                     },
-                    Message = "Mesaj başarıyla gönderildi"
+                    Message = "Message sent successfully."
                 };
             }
             catch (Exception ex)
@@ -103,7 +127,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapySessions.Commands
                 return new SendChatMessageResponse
                 {
                     Success = false,
-                    Message = "Mesaj işlenirken bir hata oluştu"
+                    Message = "An error occurred while processing the message."
                 };
             }
         }

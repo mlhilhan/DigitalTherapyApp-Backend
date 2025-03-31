@@ -15,6 +15,7 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public bool IsAiSession { get; set; } // AI oturumu mu?
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
+        public DateTime? ReactivatedAt { get; set; } // Oturumun yeniden aktifleştirildiği tarih/saat
         public SessionStatus Status { get; set; } // Enum: Scheduled, InProgress, Completed, Cancelled
         public SessionType Type { get; set; } // Enum: Text, Video, Voice
         public bool IsActive { get; set; }

@@ -12,6 +12,7 @@ using StackExchange.Redis;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using DigitalTherapyBackendApp.Infrastructure.Repositories;
 using DigitalTherapyBackendApp.Infrastructure.Persistence;
+using DigitalTherapyBackendApp.Infrastructure.Services;
 
 namespace DigitalTherapyBackendApp.Infrastructure
 {
@@ -63,7 +64,7 @@ namespace DigitalTherapyBackendApp.Infrastructure
             services.AddScoped<IInstitutionProfileRepository, InstitutionProfileRepository>();
             services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
             services.AddScoped<IEmotionalStateService, EmotionalStateService>();
-            services.AddScoped<IAiService, GeminiService>();
+            services.AddScoped<IAiService, GptService>();
 
             return services;
         }

@@ -37,23 +37,19 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
             {
                 TherapySession session;
 
-                if (request.ForceNew ||
-                    await _therapySessionRepository.GetActiveAiSessionAsync(request.UserId) == null)
+                var activeSessions = await _therapySessionRepository.GetAiSessionsByPatientIdAsync(request.UserId);
+                var currentActiveSessions = activeSessions.Where(s => s.IsActive).ToList();
+
+                if (request.ForceNew || !currentActiveSessions.Any())
                 {
-                    // Yeni oturum oluştur
                     session = await _therapySessionRepository.CreateAiSessionAsync(request.UserId);
 
-                    // Eski aktif oturumları kapat
-                    if (request.ForceNew)
+                    foreach (var activeSession in currentActiveSessions.Where(s => s.Id != session.Id))
                     {
-                        var activeSessions = await _therapySessionRepository.GetAiSessionsByPatientIdAsync(request.UserId);
-                        foreach (var activeSession in activeSessions.Where(s => s.IsActive && s.Id != session.Id))
-                        {
-                            await _therapySessionRepository.CloseAiSessionAsync(activeSession.Id);
-                        }
+                        _logger.LogInformation($"Closing active session {activeSession.Id} due to new session creation");
+                        await _therapySessionRepository.CloseAiSessionAsync(activeSession.Id);
                     }
 
-                    // Sistem kullanıcı ID'sini al
                     string systemUserIdStr = _configuration["AI:SystemUserId"];
                     Guid systemUserId;
 
@@ -62,11 +58,10 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                         systemUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
                     }
 
-                    // Hoş geldin mesajı ekle
                     await _sessionMessageRepository.AddAiMessageAsync(
                         session.Id,
                         systemUserId,
-                        "Merhaba! Ben dijital terapi asistanınız. Size nasıl yardımcı olabilirim?"
+                        "Hello! I'm your digital therapy assistant. How can I help you today?"
                     );
 
                     return new StartChatSessionResponse
@@ -78,19 +73,27 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                             StartTime = session.StartTime,
                             EndTime = session.EndTime,
                             IsActive = session.IsActive,
-                            LastMessage = "Merhaba! Ben dijital terapi asistanınız. Size nasıl yardımcı olabilirim?",
+                            LastMessage = "Hello! I'm your digital therapy assistant. How can I help you today?",
                             LastMessageTime = DateTime.UtcNow,
                             MessageCount = 1
                         },
-                        Message = "Yeni oturum başlatıldı"
+                        Message = "New session started successfully"
                     };
                 }
                 else
                 {
-                    // Aktif oturumu bul
-                    session = await _therapySessionRepository.GetActiveAiSessionAsync(request.UserId);
+                    session = currentActiveSessions.First();
 
-                    // Son mesajı al
+                    if (currentActiveSessions.Count > 1)
+                    {
+                        _logger.LogWarning($"Found {currentActiveSessions.Count} active sessions for user {request.UserId}. Keeping only one active.");
+                        foreach (var activeSession in currentActiveSessions.Where(s => s.Id != session.Id))
+                        {
+                            _logger.LogInformation($"Closing extra active session {activeSession.Id}");
+                            await _therapySessionRepository.CloseAiSessionAsync(activeSession.Id);
+                        }
+                    }
+
                     var lastMessage = await _sessionMessageRepository.GetLastMessageAsync(session.Id);
 
                     return new StartChatSessionResponse
@@ -106,7 +109,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                             LastMessageTime = lastMessage?.SentAt ?? session.StartTime,
                             MessageCount = await _sessionMessageRepository.GetMessageCountAsync(session.Id)
                         },
-                        Message = "Aktif oturum bulundu"
+                        Message = "Active session found"
                     };
                 }
             }
@@ -116,7 +119,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                 return new StartChatSessionResponse
                 {
                     Success = false,
-                    Message = "Oturum başlatılırken bir hata oluştu"
+                    Message = "An error occurred while starting the session."
                 };
             }
         }

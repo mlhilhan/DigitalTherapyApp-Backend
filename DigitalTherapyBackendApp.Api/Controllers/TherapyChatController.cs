@@ -174,6 +174,38 @@ namespace DigitalTherapyBackendApp.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Belirli bir terapi oturumunu aktifleştirir, varsa diğer aktif oturumları deaktif yapar
+        /// </summary>
+        [HttpPost("ActivateSession/{sessionId}")]
+        public async Task<ActionResult<ActivateSessionResponse>> ActivateSession(Guid sessionId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var command = new ActivateSessionCommand
+                {
+                    UserId = userId,
+                    SessionId = sessionId
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (!result.Success)
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error activating session {sessionId}");
+                return StatusCode(500, new { error = "Bir hata oluştu" });
+            }
+        }
+
+
         private Guid GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
