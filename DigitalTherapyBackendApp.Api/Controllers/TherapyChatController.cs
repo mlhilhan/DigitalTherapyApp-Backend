@@ -232,6 +232,37 @@ namespace DigitalTherapyBackendApp.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Seçili oturumu tamamlar
+        /// </summary>
+        [HttpPost("CompleteSession/{sessionId}")]
+        public async Task<ActionResult<CompleteSessionResponse>> CompleteSession(Guid sessionId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var command = new CompleteSessionCommand
+                {
+                    UserId = userId,
+                    SessionId = sessionId
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (!result.Success)
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error completing session {sessionId}");
+                return StatusCode(500, new { error = "An error occurred." });
+            }
+        }
+
 
         private Guid GetCurrentUserId()
         {

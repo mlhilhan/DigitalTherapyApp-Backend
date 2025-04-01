@@ -61,7 +61,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                     await _sessionMessageRepository.AddAiMessageAsync(
                         session.Id,
                         systemUserId,
-                        "Hello! I'm your digital therapy assistant. How can I help you today?"
+                        "Hello!"
                     );
 
                     return new StartChatSessionResponse
@@ -73,7 +73,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                             StartTime = session.StartTime,
                             EndTime = session.EndTime,
                             IsActive = session.IsActive,
-                            LastMessage = "Hello! I'm your digital therapy assistant. How can I help you today?",
+                            LastMessage = "Hello!",
                             LastMessageTime = DateTime.UtcNow,
                             MessageCount = 1
                         },

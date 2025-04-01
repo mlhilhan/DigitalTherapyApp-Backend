@@ -15,12 +15,12 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public bool IsAiSession { get; set; } // AI oturumu mu?
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
-        public DateTime? ReactivatedAt { get; set; } // Oturumun yeniden aktifleştirildiği tarih/saat
-        public SessionStatus Status { get; set; } // Enum: Scheduled, InProgress, Completed, Cancelled
-        public SessionType Type { get; set; } // Enum: Text, Video, Voice
+        public DateTime? ReactivatedAt { get; set; } // Oturumun yeniden aktifleştirildiği tarih
+        public SessionStatus Status { get; set; }
+        public SessionType Type { get; set; }
         public bool IsActive { get; set; }
         public bool IsArchived { get; set; }
-        public string? MeetingLink { get; set; } // Video/ses görüşmeleri için link
+        public string? MeetingLink { get; set; } // Video-ses görüşmeleri için link
 
         // Navigation properties
         public virtual PatientProfile Patient { get; set; }

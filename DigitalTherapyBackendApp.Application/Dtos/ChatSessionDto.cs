@@ -12,8 +12,10 @@ namespace DigitalTherapyBackendApp.Application.Dtos
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public bool IsActive { get; set; }
-        public string LastMessage { get; set; }
+        public string? LastMessage { get; set; }
         public DateTime LastMessageTime { get; set; }
         public int MessageCount { get; set; }
+        public string Status { get; set; }
+        public bool IsArchived { get; set; }
     }
 }

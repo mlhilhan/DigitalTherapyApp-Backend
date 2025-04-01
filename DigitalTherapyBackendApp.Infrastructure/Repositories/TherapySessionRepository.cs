@@ -68,7 +68,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
                 .Include(s => s.EmotionalStates)
                 .Where(s => s.PatientId == patientId &&
                            s.IsAiSession &&
-                           !s.IsArchived)  // Arşivlenen oturumları hariç tut
+                           !s.IsArchived)
                 .OrderByDescending(s => s.StartTime)
                 .ToListAsync();
         }
@@ -227,7 +227,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
                 return false;
 
             session.IsActive = false;
-            session.Status = SessionStatus.Completed;
+            //session.Status = SessionStatus.Cancelled;
             session.EndTime = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

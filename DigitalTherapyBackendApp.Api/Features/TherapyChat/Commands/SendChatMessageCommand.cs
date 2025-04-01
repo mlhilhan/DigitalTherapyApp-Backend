@@ -78,6 +78,15 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapySessions.Commands
                         };
                     }
 
+                    if (session.Status == SessionStatus.Completed)
+                    {
+                        return new SendChatMessageResponse
+                        {
+                            Success = false,
+                            Message = "New messages cannot be sent to a completed session."
+                        };
+                    }
+
                     if (!session.IsActive)
                     {
                         var activeSessions = await _therapySessionRepository.GetActiveSessionsAsync(request.UserId);
@@ -92,6 +101,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapySessions.Commands
                         }
 
                         session.IsActive = true;
+                        session.Status = SessionStatus.InProgress;
                         if (session.EndTime.HasValue)
                         {
                             session.EndTime = null;
