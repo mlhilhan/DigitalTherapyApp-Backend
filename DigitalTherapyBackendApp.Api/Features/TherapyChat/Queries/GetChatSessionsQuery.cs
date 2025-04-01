@@ -49,7 +49,8 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Queries
                             ? lastMessage.Content.Substring(0, 47) + "..."
                             : lastMessage?.Content,
                         LastMessageTime = lastMessage?.SentAt ?? session.StartTime,
-                        MessageCount = await _sessionMessageRepository.GetMessageCountAsync(session.Id)
+                        MessageCount = await _sessionMessageRepository.GetMessageCountAsync(session.Id),
+                        Status = session.Status.ToString(),
                     });
                 }
 

@@ -233,6 +233,33 @@ namespace DigitalTherapyBackendApp.Api.Controllers
         }
 
         /// <summary>
+        /// Belirli bir terapi oturumunu siler
+        /// </summary>
+        [HttpPost("ClearAiSession/{sessionId}")]
+        public async Task<ActionResult<ClearAiSessionResponse>> ArchiveSession(Guid sessionId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var command = new ClearAiSessionCommand { UserId = userId, SessionId = sessionId };
+
+                var result = await _mediator.Send(command);
+
+                if (!result.Success)
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error archiving session {sessionId}");
+                return StatusCode(500, new { error = "An error occurred." });
+            }
+        }
+
+        /// <summary>
         /// Seçili oturumu tamamlar
         /// </summary>
         [HttpPost("CompleteSession/{sessionId}")]

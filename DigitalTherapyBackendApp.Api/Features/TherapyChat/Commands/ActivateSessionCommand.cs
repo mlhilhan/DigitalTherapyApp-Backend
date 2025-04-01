@@ -79,7 +79,8 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                         .Where(m => m.SessionId == targetSession.Id)
                         .OrderByDescending(m => m.SentAt)
                         .Select(m => m.Content)
-                        .FirstOrDefaultAsync(cancellationToken)
+                        .FirstOrDefaultAsync(cancellationToken),
+                    Status = targetSession.Status.ToString(),
                 };
 
                 return new ActivateSessionResponse

@@ -75,7 +75,8 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                             IsActive = session.IsActive,
                             LastMessage = "Hello!",
                             LastMessageTime = DateTime.UtcNow,
-                            MessageCount = 1
+                            MessageCount = 1,
+                            Status = session.Status.ToString(),
                         },
                         Message = "New session started successfully"
                     };
@@ -107,7 +108,8 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                             IsActive = session.IsActive,
                             LastMessage = lastMessage?.Content,
                             LastMessageTime = lastMessage?.SentAt ?? session.StartTime,
-                            MessageCount = await _sessionMessageRepository.GetMessageCountAsync(session.Id)
+                            MessageCount = await _sessionMessageRepository.GetMessageCountAsync(session.Id),
+                            Status = session.Status.ToString(),
                         },
                         Message = "Active session found"
                     };

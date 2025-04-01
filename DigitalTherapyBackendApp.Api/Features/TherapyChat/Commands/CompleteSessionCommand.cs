@@ -70,6 +70,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands
                 }
 
                 session.Status = SessionStatus.Completed;
+                session.IsActive = false;
 
                 if (!session.EndTime.HasValue)
                 {
