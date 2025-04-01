@@ -66,7 +66,21 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
             return await _context.TherapySessions
                 .Include(s => s.Messages)
                 .Include(s => s.EmotionalStates)
-                .Where(s => s.PatientId == patientId && s.IsAiSession)
+                .Where(s => s.PatientId == patientId &&
+                           s.IsAiSession &&
+                           !s.IsArchived)  // Arşivlenen oturumları hariç tut
+                .OrderByDescending(s => s.StartTime)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<TherapySession>> GetArchivedAiSessionsByPatientIdAsync(Guid patientId)
+        {
+            return await _context.TherapySessions
+                .Include(s => s.Messages)
+                .Include(s => s.EmotionalStates)
+                .Where(s => s.PatientId == patientId &&
+                           s.IsAiSession &&
+                           s.IsArchived)  // Sadece arşivlenen oturumları getir
                 .OrderByDescending(s => s.StartTime)
                 .ToListAsync();
         }

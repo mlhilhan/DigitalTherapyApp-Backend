@@ -16,6 +16,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
             builder.Property(x => x.Status).IsRequired().HasConversion<string>();
             builder.Property(x => x.Type).IsRequired().HasConversion<string>();
             builder.Property(x => x.IsActive).IsRequired();
+            builder.Property(x => x.IsArchived).IsRequired();
             builder.Property(x => x.MeetingLink).HasMaxLength(1000);
 
 

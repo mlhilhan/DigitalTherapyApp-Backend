@@ -53,7 +53,7 @@ namespace DigitalTherapyBackendApp.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending chat message");
-                return StatusCode(500, new { error = "Bir hata oluştu" });
+                return StatusCode(500, new { error = "An error occurred." });
             }
         }
 
@@ -80,7 +80,7 @@ namespace DigitalTherapyBackendApp.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting chat sessions");
-                return StatusCode(500, new { error = "Bir hata oluştu" });
+                return StatusCode(500, new { error = "An error occurred." });
             }
         }
 
@@ -111,7 +111,7 @@ namespace DigitalTherapyBackendApp.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error getting messages for session {sessionId}");
-                return StatusCode(500, new { error = "Bir hata oluştu" });
+                return StatusCode(500, new { error = "An error occurred." });
             }
         }
 
@@ -139,7 +139,7 @@ namespace DigitalTherapyBackendApp.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error starting new chat session");
-                return StatusCode(500, new { error = "Bir hata oluştu" });
+                return StatusCode(500, new { error = "An error occurred." });
             }
         }
 
@@ -170,7 +170,7 @@ namespace DigitalTherapyBackendApp.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ending session {sessionId}");
-                return StatusCode(500, new { error = "Bir hata oluştu" });
+                return StatusCode(500, new { error = "An error occurred." });
             }
         }
 
@@ -201,7 +201,34 @@ namespace DigitalTherapyBackendApp.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error activating session {sessionId}");
-                return StatusCode(500, new { error = "Bir hata oluştu" });
+                return StatusCode(500, new { error = "An error occurred." });
+            }
+        }
+
+        /// <summary>
+        /// Kullanıcıya ait tüm terapi oturumlarını temizler
+        /// </summary>
+        [HttpPost("ClearAllAiSessions")]
+        public async Task<ActionResult<ClearAllAiSessionsResponse>> ClearAllSessions()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var command = new ClearAllAiSessionsCommand { UserId = userId };
+
+                var result = await _mediator.Send(command);
+
+                if (!result.Success)
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error clearing all chat sessions");
+                return StatusCode(500, new { error = "An error occurred." });
             }
         }
 
@@ -211,7 +238,7 @@ namespace DigitalTherapyBackendApp.Api.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
-                throw new UnauthorizedAccessException("Geçersiz kullanıcı kimliği");
+                throw new UnauthorizedAccessException("Invalid user ID.");
             }
 
             return userId;
