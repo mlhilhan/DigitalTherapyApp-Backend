@@ -1,4 +1,5 @@
 ﻿using DigitalTherapyBackendApp.Application.Interfaces;
+using DigitalTherapyBackendApp.Domain.Entities;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -63,7 +64,8 @@ namespace DigitalTherapyBackendApp.Infrastructure.Services
             _openAIApi = new OpenAIAPI(new APIAuthentication(apiKey));
         }
 
-        public async Task<string> GetChatResponseAsync(Guid patientId, string message)
+
+        public async Task<string> GetChatResponseAsync(Guid patientId, string message, Guid? sessionId = null)
         {
             var retryCount = 0;
 
@@ -71,11 +73,52 @@ namespace DigitalTherapyBackendApp.Infrastructure.Services
             {
                 try
                 {
-                    var session = await _sessionRepository.GetActiveAiSessionAsync(patientId);
-                    if (session == null)
+                    TherapySession session;
+
+                    // Eğer session ID belirtilmişse, doğrudan o session'ı kullan
+                    if (sessionId.HasValue)
                     {
-                        _logger.LogWarning($"No active AI sessions found for patient {patientId}. A new session is being created.");
-                        session = await _sessionRepository.CreateAiSessionAsync(patientId);
+                        session = await _sessionRepository.GetByIdAsync(sessionId.Value);
+
+                        // Session bulunamadıysa veya bu kullanıcıya ait değilse hata döndür
+                        if (session == null || session.PatientId != patientId)
+                        {
+                            throw new Exception("Session not found or does not belong to this user");
+                        }
+
+                        // Session aktif değilse aktif yap
+                        if (!session.IsActive)
+                        {
+                            // Diğer aktif sessionları devre dışı bırak
+                            var activeSessions = await _sessionRepository.GetActiveSessionsAsync(patientId);
+                            foreach (var activeSession in activeSessions)
+                            {
+                                if (activeSession.Id != session.Id)
+                                {
+                                    activeSession.IsActive = false;
+                                    activeSession.EndTime = DateTime.UtcNow;
+                                    await _sessionRepository.UpdateAsync(activeSession);
+                                }
+                            }
+
+                            session.IsActive = true;
+                            if (session.EndTime.HasValue)
+                            {
+                                session.EndTime = null;
+                            }
+                            await _sessionRepository.UpdateAsync(session);
+                            _logger.LogInformation($"Session {session.Id} activated in AI service");
+                        }
+                    }
+                    else
+                    {
+                        // Session ID belirtilmemişse, aktif session'ı al veya yenisini oluştur
+                        session = await _sessionRepository.GetActiveAiSessionAsync(patientId);
+                        if (session == null)
+                        {
+                            _logger.LogWarning($"No active AI sessions found for patient {patientId}. A new session is being created.");
+                            session = await _sessionRepository.CreateAiSessionAsync(patientId);
+                        }
                     }
 
                     await _messageRepository.AddUserMessageAsync(session.Id, patientId, message);
@@ -83,9 +126,9 @@ namespace DigitalTherapyBackendApp.Infrastructure.Services
                     var chatHistory = (await _messageRepository.GetRecentBySessionIdAsync(session.Id, _messageHistoryCount)).ToList();
 
                     var conversation = new List<ChatMessage>
-                    {
-                        new ChatMessage(ChatMessageRole.System, DEFAULT_SYSTEM_PROMPT)
-                    };
+            {
+                new ChatMessage(ChatMessageRole.System, DEFAULT_SYSTEM_PROMPT)
+            };
 
                     foreach (var chatMessage in chatHistory)
                     {
@@ -102,7 +145,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Services
                         NumChoicesPerMessage = 1
                     };
 
-                    _logger.LogInformation($"Sending GPT API request. Model: {_model}, PatientID: {patientId}");
+                    _logger.LogInformation($"Sending GPT API request. Model: {_model}, PatientID: {patientId}, SessionID: {session.Id}");
 
                     var timeoutTask = Task.Delay(TimeSpan.FromSeconds(_timeout));
                     var apiTask = _openAIApi.Chat.CreateChatCompletionAsync(chatRequest);
@@ -121,7 +164,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Services
                     }
 
                     string aiResponse = result.Choices[0].Message.Content;
-                    _logger.LogInformation($"GPT API response received. Response length: {aiResponse?.Length ?? 0}");
+                    _logger.LogInformation($"GPT API response received. Session: {session.Id}, Response length: {aiResponse?.Length ?? 0}");
 
                     await _messageRepository.AddAiMessageAsync(session.Id, patientId, aiResponse);
 
@@ -167,6 +210,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Services
 
             return "Sorry, we are experiencing technical difficulties. Please try again later.";
         }
+
 
         public async Task<bool> EndChatSessionAsync(Guid sessionId)
         {

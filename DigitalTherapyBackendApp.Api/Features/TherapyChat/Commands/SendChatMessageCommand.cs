@@ -25,7 +25,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapySessions.Commands
             {
                 UserId = userId,
                 Message = payload.Message,
-                SessionId = payload.SessionId
+                SessionId = sessionId ?? payload.SessionId
             };
         }
     }
@@ -107,7 +107,7 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapySessions.Commands
                            ?? await _therapySessionRepository.CreateAiSessionAsync(request.UserId);
                 }
 
-                string aiResponse = await _aiService.GetChatResponseAsync(request.UserId, request.Message);
+                string aiResponse = await _aiService.GetChatResponseAsync(request.UserId, request.Message, session.Id);
 
                 return new SendChatMessageResponse
                 {
@@ -116,7 +116,8 @@ namespace DigitalTherapyBackendApp.Api.Features.TherapySessions.Commands
                     {
                         Message = aiResponse,
                         Timestamp = DateTime.UtcNow,
-                        SessionId = session.Id
+                        SessionId = session.Id,
+                        SessionActivated = true,
                     },
                     Message = "Message sent successfully."
                 };
