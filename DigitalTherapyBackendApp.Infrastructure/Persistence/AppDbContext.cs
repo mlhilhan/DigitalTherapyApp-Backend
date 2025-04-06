@@ -23,6 +23,11 @@ namespace DigitalTherapyBackendApp.Infrastructure.Persistence
         public DbSet<TherapistPatientRelationship> TherapistPatientRelationships { get; set; }
         public DbSet<Specialty> Specialties { get; set; }
         public DbSet<PsychologistAvailabilitySlot> PsychologistAvailabilitySlots { get; set; }
+        public DbSet<DailyTipCategory> DailyTipCategories { get; set; }
+        public DbSet<DailyTipCategoryTranslation> DailyTipCategoryTranslations { get; set; }
+        public DbSet<DailyTip> DailyTips { get; set; }
+        public DbSet<DailyTipTranslation> DailyTipTranslations { get; set; }
+
 
         // Configuration Class
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,6 +44,10 @@ namespace DigitalTherapyBackendApp.Infrastructure.Persistence
             modelBuilder.ApplyConfiguration(new DirectMessageConfiguration());
             modelBuilder.ApplyConfiguration(new TherapistPatientRelationshipConfiguration());
             modelBuilder.ApplyConfiguration(new SpecialtyConfiguration());
+            modelBuilder.ApplyConfiguration(new DailyTipCategoryConfiguration());
+            modelBuilder.ApplyConfiguration(new DailyTipCategoryTranslationConfiguration());
+            modelBuilder.ApplyConfiguration(new DailyTipConfiguration());
+            modelBuilder.ApplyConfiguration(new DailyTipTranslationConfiguration());
 
             // User - Role One-to-Many ilişkisi
             modelBuilder.Entity<User>()

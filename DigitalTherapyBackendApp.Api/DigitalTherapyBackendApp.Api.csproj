@@ -29,4 +29,8 @@
     <ProjectReference Include="..\DigitalTherapyBackendApp.Infrastructure\DigitalTherapyBackendApp.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\DailyTips\Payloads\" />
+  </ItemGroup>
+
 </Project>

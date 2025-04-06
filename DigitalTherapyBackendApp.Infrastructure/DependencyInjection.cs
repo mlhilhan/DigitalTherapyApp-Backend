@@ -65,6 +65,8 @@ namespace DigitalTherapyBackendApp.Infrastructure
             services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
             services.AddScoped<IEmotionalStateService, EmotionalStateService>();
             services.AddScoped<IAiService, GptService>();
+            services.AddScoped<IDailyTipRepository, DailyTipRepository>();
+            services.AddScoped<IDailyTipService, DailyTipService>();
 
             return services;
         }
