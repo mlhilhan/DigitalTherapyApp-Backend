@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DigitalTherapyBackendApp.Domain.Entities
+namespace DigitalTherapyBackendApp.Domain.Entities.DailyTip
 {
     public class DailyTipCategoryTranslation
     {

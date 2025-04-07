@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DigitalTherapyBackendApp.Domain.Entities
+namespace DigitalTherapyBackendApp.Domain.Entities.DailyTip
 {
     public class DailyTipCategory
     {

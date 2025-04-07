@@ -1,7 +1,10 @@
 ﻿using DigitalTherapyBackendApp.Application.Interfaces;
 using DigitalTherapyBackendApp.Domain.Entities;
+using DigitalTherapyBackendApp.Domain.Entities.DailyTip;
+using DigitalTherapyBackendApp.Domain.Entities.Subscriptions;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using DigitalTherapyBackendApp.Infrastructure.Configurations;
+using DigitalTherapyBackendApp.Infrastructure.Configurations.Subscriptions;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +30,11 @@ namespace DigitalTherapyBackendApp.Infrastructure.Persistence
         public DbSet<DailyTipCategoryTranslation> DailyTipCategoryTranslations { get; set; }
         public DbSet<DailyTip> DailyTips { get; set; }
         public DbSet<DailyTipTranslation> DailyTipTranslations { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<UserSubscription> UserSubscriptions { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<SubscriptionPrice> SubscriptionPrices { get; set; }
+        public DbSet<SubscriptionTranslation> SubscriptionTranslations { get; set; }
 
 
         // Configuration Class
@@ -48,6 +56,11 @@ namespace DigitalTherapyBackendApp.Infrastructure.Persistence
             modelBuilder.ApplyConfiguration(new DailyTipCategoryTranslationConfiguration());
             modelBuilder.ApplyConfiguration(new DailyTipConfiguration());
             modelBuilder.ApplyConfiguration(new DailyTipTranslationConfiguration());
+            modelBuilder.ApplyConfiguration(new SubscriptionConfiguration());
+            modelBuilder.ApplyConfiguration(new UserSubscriptionConfiguration());
+            modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+            modelBuilder.ApplyConfiguration(new SubscriptionPriceConfiguration());
+            modelBuilder.ApplyConfiguration(new SubscriptionTranslationConfiguration());
 
             // User - Role One-to-Many ilişkisi
             modelBuilder.Entity<User>()

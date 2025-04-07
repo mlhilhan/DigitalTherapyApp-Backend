@@ -1,4 +1,4 @@
-﻿using DigitalTherapyBackendApp.Domain.Entities;
+﻿using DigitalTherapyBackendApp.Domain.Entities.DailyTip;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

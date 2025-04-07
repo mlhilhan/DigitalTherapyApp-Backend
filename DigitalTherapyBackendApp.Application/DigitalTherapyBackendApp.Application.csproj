@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <Folder Include="Mappings\" />
     <Folder Include="Validations\" />
     <Folder Include="Services\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.9" />
     <PackageReference Include="MailKit" Version="4.11.0" />
     <PackageReference Include="MediatR" Version="11.0.0" />

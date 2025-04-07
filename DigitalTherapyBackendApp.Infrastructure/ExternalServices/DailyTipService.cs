@@ -1,6 +1,6 @@
 ﻿using DigitalTherapyBackendApp.Application.Dtos.DailyTips;
 using DigitalTherapyBackendApp.Application.Interfaces;
-using DigitalTherapyBackendApp.Domain.Entities;
+using DigitalTherapyBackendApp.Domain.Entities.DailyTip;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using System;
 using System.Collections.Generic;

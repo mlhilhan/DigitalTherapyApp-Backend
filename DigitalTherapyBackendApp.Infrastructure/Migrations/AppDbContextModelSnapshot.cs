@@ -22,7 +22,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip", b =>
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTip", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -74,7 +74,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("DailyTips", (string)null);
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTipCategory", b =>
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTipCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -111,7 +111,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("DailyTipCategories", (string)null);
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTipCategoryTranslation", b =>
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTipCategoryTranslation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -146,7 +146,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("DailyTipCategoryTranslations", (string)null);
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTipTranslation", b =>
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTipTranslation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -592,6 +592,253 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("Specialties", (string)null);
                 });
 
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PaymentDetails")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TransactionId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("UserSubscriptionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserSubscriptionId");
+
+                    b.ToTable("Payments", (string)null);
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.Subscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AIChatSessionsPerWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("BaseCurrency")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<decimal>("BasePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("DurationInDays")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("HasAdvancedReports")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("HasAllMeditationContent")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("HasEmergencySupport")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("HasPsychologistSupport")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MessageLimitPerChat")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MoodEntryLimit")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PlanId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("PsychologistSessionsPerMonth")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Subscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.SubscriptionPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.ToTable("SubscriptionPrices", (string)null);
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.SubscriptionTranslation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId", "LanguageCode")
+                        .IsUnique();
+
+                    b.ToTable("SubscriptionTranslations", (string)null);
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.UserSubscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AutoRenew")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TransactionId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UserId1")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.ToTable("UserSubscriptions", (string)null);
+                });
+
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.TherapistPatientRelationship", b =>
                 {
                     b.Property<Guid>("Id")
@@ -895,9 +1142,9 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("PsychologistSpecialties", (string)null);
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip", b =>
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTip", b =>
                 {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.DailyTipCategory", "Category")
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTipCategory", "Category")
                         .WithMany("Tips")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -906,9 +1153,9 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTipCategoryTranslation", b =>
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTipCategoryTranslation", b =>
                 {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.DailyTipCategory", "Category")
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTipCategory", "Category")
                         .WithMany("Translations")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -917,9 +1164,9 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTipTranslation", b =>
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTipTranslation", b =>
                 {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.DailyTip", "Tip")
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTip", "Tip")
                         .WithMany("Translations")
                         .HasForeignKey("TipId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1030,6 +1277,62 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Navigation("Sender");
 
                     b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.Payment", b =>
+                {
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.UserSubscription", "UserSubscription")
+                        .WithMany()
+                        .HasForeignKey("UserSubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UserSubscription");
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.SubscriptionPrice", b =>
+                {
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.Subscription", "Subscription")
+                        .WithMany("PricesByCountry")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.SubscriptionTranslation", b =>
+                {
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.Subscription", "Subscription")
+                        .WithMany("Translations")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.UserSubscription", b =>
+                {
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.Subscription", "Subscription")
+                        .WithMany("UserSubscriptions")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", null)
+                        .WithMany("UserSubscriptions")
+                        .HasForeignKey("UserId1");
+
+                    b.Navigation("Subscription");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.TherapistPatientRelationship", b =>
@@ -1160,12 +1463,12 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip", b =>
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTip", b =>
                 {
                     b.Navigation("Translations");
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTipCategory", b =>
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.DailyTip.DailyTipCategory", b =>
                 {
                     b.Navigation("Tips");
 
@@ -1187,11 +1490,25 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.Subscription", b =>
+                {
+                    b.Navigation("PricesByCountry");
+
+                    b.Navigation("Translations");
+
+                    b.Navigation("UserSubscriptions");
+                });
+
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.TherapySession", b =>
                 {
                     b.Navigation("EmotionalStates");
 
                     b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.User", b =>
+                {
+                    b.Navigation("UserSubscriptions");
                 });
 #pragma warning restore 612, 618
         }

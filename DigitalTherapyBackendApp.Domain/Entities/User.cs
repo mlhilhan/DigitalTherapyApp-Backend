@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using DigitalTherapyBackendApp.Domain.Entities.Subscriptions;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -12,8 +13,9 @@ namespace DigitalTherapyBackendApp.Domain.Entities
     {
         public Guid RoleId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsActive { get; set; } = true;
         public Role Role { get; set; }
         public virtual PatientProfile? PatientProfile { get; set; }
-        public bool IsActive { get; set; } = true;
+        public ICollection<UserSubscription> UserSubscriptions { get; set; }
     }
 }

@@ -28,6 +28,9 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 // MediatR
 builder.Services.AddMediatR(typeof(Program).Assembly);
 
+// AutoMapper konfigürasyonu
+builder.Services.AddAutoMapper(typeof(Program).Assembly, typeof(DigitalTherapyBackendApp.Infrastructure.Mapping.MappingProfile).Assembly);
+
 // Token Black List
 builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
 
@@ -127,6 +130,8 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+builder.Services.AddHttpClient();
 
 // Redis
 var redisConnectionString = builder.Configuration.GetValue<string>("Redis:ConnectionString") ?? "localhost:6379";

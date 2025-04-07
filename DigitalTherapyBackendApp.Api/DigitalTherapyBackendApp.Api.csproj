@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.9" />
     <PackageReference Include="MailKit" Version="4.11.0" />
     <PackageReference Include="MediatR" Version="11.0.0" />
@@ -27,10 +28,6 @@
   <ItemGroup>
     <ProjectReference Include="..\DigitalTherapyBackendApp.Application\DigitalTherapyBackendApp.Application.csproj" />
     <ProjectReference Include="..\DigitalTherapyBackendApp.Infrastructure\DigitalTherapyBackendApp.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Features\DailyTips\Payloads\" />
   </ItemGroup>
 
 </Project>

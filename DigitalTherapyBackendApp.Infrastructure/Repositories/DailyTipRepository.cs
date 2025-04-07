@@ -1,4 +1,4 @@
-﻿using DigitalTherapyBackendApp.Domain.Entities;
+﻿using DigitalTherapyBackendApp.Domain.Entities.DailyTip;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using DigitalTherapyBackendApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

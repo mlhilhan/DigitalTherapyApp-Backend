@@ -1,6 +1,6 @@
 ﻿using DigitalTherapyBackendApp.Api.Features.DailyTips.Responses;
 using DigitalTherapyBackendApp.Application.Dtos.DailyTips;
-using DigitalTherapyBackendApp.Domain.Entities;
+using DigitalTherapyBackendApp.Domain.Entities.DailyTip;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;

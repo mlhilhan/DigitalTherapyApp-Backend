@@ -1,5 +1,6 @@
 ﻿using DigitalTherapyBackendApp.Api.Features.DailyTips.Responses;
 using DigitalTherapyBackendApp.Application.Dtos.DailyTips;
+using DigitalTherapyBackendApp.Domain.Entities.DailyTip;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -60,7 +61,7 @@ namespace DigitalTherapyBackendApp.Api.Features.DailyTips.Queries
             }
         }
 
-        private DailyTipDto MapTipToDto(DigitalTherapyBackendApp.Domain.Entities.DailyTip tip, string languageCode)
+        private DailyTipDto MapTipToDto(DailyTip tip, string languageCode)
         {
             var translation = tip.Translations
                 .FirstOrDefault(t => t.LanguageCode == languageCode)
