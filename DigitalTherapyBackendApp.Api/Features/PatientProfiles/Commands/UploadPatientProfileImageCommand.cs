@@ -85,6 +85,7 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Commands
                         Bio = profile.Bio,
                         AvatarUrl = avatarUrl,
                         PreferredLanguage = profile.PreferredLanguage,
+                        CountryCode = profile.CountryCode,
                         NotificationPreferences = profile.NotificationPreferences
                     }
                 };

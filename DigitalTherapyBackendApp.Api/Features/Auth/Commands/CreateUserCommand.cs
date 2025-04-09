@@ -5,6 +5,7 @@ using DigitalTherapyBackendApp.Domain.Constants;
 using DigitalTherapyBackendApp.Api.Features.Auth.Responses;
 using DigitalTherapyBackendApp.Api.Features.Auth.Payloads;
 using DigitalTherapyBackendApp.Domain.Interfaces;
+using DigitalTherapyBackendApp.Application.Interfaces;
 
 namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
 {
@@ -27,8 +28,9 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
         private readonly IPatientProfileRepository _patientProfileRepository;
         private readonly IPsychologistProfileRepository _psychologistProfileRepository;
         private readonly IInstitutionProfileRepository _institutionProfileRepository;
+        private readonly ISubscriptionService _subscriptionService;
 
-        public CreateUserCommandHandler(UserManager<User> userManager, RoleManager<Role> roleManager, ILogger<User> logger, IPatientProfileRepository patientProfileRepository, IPsychologistProfileRepository psychologistProfileRepository, IInstitutionProfileRepository institutionProfileRepository)
+        public CreateUserCommandHandler(UserManager<User> userManager, RoleManager<Role> roleManager, ILogger<User> logger, IPatientProfileRepository patientProfileRepository, IPsychologistProfileRepository psychologistProfileRepository, IInstitutionProfileRepository institutionProfileRepository, ISubscriptionService subscriptionService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -36,6 +38,7 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
             _patientProfileRepository = patientProfileRepository;
             _psychologistProfileRepository = psychologistProfileRepository;
             _institutionProfileRepository = institutionProfileRepository;
+            _subscriptionService = subscriptionService;
         }
 
         public async Task<CreateUserResponse> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -86,9 +89,22 @@ namespace DigitalTherapyBackendApp.Api.Features.Auth.Commands
                             UserId = user.Id,
                             User = user,
                             PreferredLanguage = request.Payload.PreferredLanguage,
+                            CountryCode = request.Payload.Country,
                         };
 
                         await _patientProfileRepository.AddAsync(patientprofile);
+
+                        var freePlanSubscription = await _subscriptionService.GetSubscriptionByPlanIdAsync("free");
+                        if (freePlanSubscription != null)
+                        {
+                            await _subscriptionService.SubscribeUserAsync(
+                                user.Id,
+                                freePlanSubscription.Id,
+                                "system",
+                                0,
+                                string.Empty
+                            );
+                        }
                     }
 
                     if (request.Payload.RoleId.ToString() == "40c2b39a-a133-4ba9-a97b-ce351bd101ac")

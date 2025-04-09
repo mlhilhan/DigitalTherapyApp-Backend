@@ -28,6 +28,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Configurations
             builder.Property(p => p.Bio).HasMaxLength(1000);
             builder.Property(p => p.AvatarUrl).HasMaxLength(500);
             builder.Property(p => p.PreferredLanguage).HasMaxLength(50);
+            builder.Property(p => p.CountryCode).HasMaxLength(50);
             builder.Property(p => p.NotificationPreferences).HasMaxLength(255);
 
             // Relationships

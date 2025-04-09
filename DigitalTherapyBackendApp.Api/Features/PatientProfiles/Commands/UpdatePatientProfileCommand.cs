@@ -15,6 +15,7 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Commands
         public string? Gender { get; set; }
         public string? Bio { get; set; }
         public string? PreferredLanguage { get; set; }
+        public string? CountryCode { get; set; }
         public string? NotificationPreferences { get; set; }
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
@@ -64,7 +65,8 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Commands
                 profile.Bio = request.Bio;
                 profile.PreferredLanguage = request.PreferredLanguage;
                 profile.NotificationPreferences = request.NotificationPreferences;
-                    
+                profile.CountryCode = request.CountryCode;
+
 
                 if (profile.Id == Guid.Empty)
                 {
@@ -90,6 +92,7 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Commands
                         Bio = profile.Bio,
                         AvatarUrl = profile.AvatarUrl,
                         PreferredLanguage = profile.PreferredLanguage,
+                        CountryCode = profile.CountryCode,
                         NotificationPreferences = profile.NotificationPreferences,
                         Email = user.Email,
                         PhoneNumber = user.PhoneNumber

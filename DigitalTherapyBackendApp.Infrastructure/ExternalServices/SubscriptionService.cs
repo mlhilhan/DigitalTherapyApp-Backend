@@ -470,5 +470,30 @@ namespace DigitalTherapyBackendApp.Infrastructure.ExternalServices
 
             return _mapper.Map<List<UserSubscriptionDto>>(userSubscriptions);
         }
+
+        public async Task<List<SubscriptionDetailsDto>> GetSubscriptionsWithDetailsByRoleAsync(string roleId, string countryCode, string languageCode)
+        {
+            var allPlans = await GetSubscriptionsWithDetailsAsync(countryCode, languageCode);
+
+            if (roleId == "4b41d3bc-95cb-4758-8c01-c5487707931e") // Patient Role ID
+            {
+                return allPlans.Where(p => p.PlanId != "pro").ToList();
+            }
+            else if (roleId == "40c2b39a-a133-4ba9-a97b-ce351bd101ac") // Psychologist Role ID
+            {
+                // Psikolog rolü için özel planları döndür
+                return allPlans.Where(p => p.PlanId != "free").ToList();
+            }
+            else if (roleId == "ce6c9f4d-8b26-4971-853a-69bafe48c012") // Admin Role ID
+            {
+                return allPlans;
+            }
+            else if (roleId == "5e6ef66e-8298-4002-b765-5a794f149362") // Institution Role ID
+            {
+                return allPlans.Where(p => p.PlanId == "pro").ToList();
+            }
+
+            return allPlans.Where(p => p.PlanId == "free").ToList();
+        }
     }
 }

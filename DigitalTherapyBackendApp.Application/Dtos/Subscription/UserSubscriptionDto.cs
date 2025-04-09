@@ -5,7 +5,7 @@ namespace DigitalTherapyBackendApp.Application.Dtos.Subscription
     public class UserSubscriptionDto
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         public int SubscriptionId { get; set; }
         public SubscriptionDto Subscription { get; set; }
         public DateTime StartDate { get; set; }

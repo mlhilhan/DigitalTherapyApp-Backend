@@ -252,5 +252,16 @@ namespace DigitalTherapyBackendApp.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("GetSubscriptionPlansByRole/{roleId}")]
+        public async Task<IActionResult> GetSubscriptionPlansByRole(
+        string roleId,
+        [FromQuery] string countryCode = "US",
+        [FromQuery] string languageCode = "en")
+        {
+            var query = new GetSubscriptionPlansByRoleQuery(roleId, countryCode, languageCode);
+            var response = await _mediator.Send(query);
+            return Ok(response);
+        }
     }
 }

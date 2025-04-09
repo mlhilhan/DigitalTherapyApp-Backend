@@ -70,6 +70,7 @@ namespace DigitalTherapyBackendApp.Api.Features.PatientProfiles.Queries
                                     Bio = patient.Bio,
                                     AvatarUrl = patient.AvatarUrl,
                                     PreferredLanguage = patient.PreferredLanguage,
+                                    CountryCode = patient.CountryCode,
                                     NotificationPreferences = patient.NotificationPreferences,
                                     RelationshipStatus = relationship.Status,
                                     RelationshipStartDate = relationship.StartDate,

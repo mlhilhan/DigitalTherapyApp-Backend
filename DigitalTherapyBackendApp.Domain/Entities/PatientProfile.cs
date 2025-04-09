@@ -17,6 +17,7 @@ namespace DigitalTherapyBackendApp.Domain.Entities
         public string? Bio { get; set; }
         public string? AvatarUrl { get; set; }
         public string? PreferredLanguage { get; set; }
+        public string? CountryCode { get; set; }
         public string? NotificationPreferences { get; set; }
         public User User { get; set; }
     }

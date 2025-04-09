@@ -31,5 +31,6 @@ namespace DigitalTherapyBackendApp.Application.Interfaces
         Task<SubscriptionDto> AddSubscriptionPlanAsync(SubscriptionDto subscriptionDto);
         Task<SubscriptionDto> UpdateSubscriptionPlanAsync(SubscriptionDto subscriptionDto);
         Task<List<UserSubscriptionDto>> GetAllUserSubscriptionsAsync();
+        Task<List<SubscriptionDetailsDto>> GetSubscriptionsWithDetailsByRoleAsync(string roleId, string countryCode, string languageCode);
     }
 }
