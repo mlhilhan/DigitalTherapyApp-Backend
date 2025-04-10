@@ -140,5 +140,18 @@ namespace DigitalTherapyBackendApp.Infrastructure.Repositories
 
             return await query.CountAsync();
         }
+
+        public async Task<int> CountActiveEntriesForDateAsync(Guid userId, DateTime date)
+        {
+            DateTime startOfDay = date.Date;
+            DateTime endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+
+            return await _context.EmotionalStates
+                .CountAsync(es =>
+                    es.UserId == userId &&
+                    es.Date >= startOfDay &&
+                    es.Date <= endOfDay &&
+                    !es.IsDeleted);
+        }
     }
 }

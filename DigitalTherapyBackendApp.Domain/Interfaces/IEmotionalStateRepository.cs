@@ -20,5 +20,6 @@ namespace DigitalTherapyBackendApp.Domain.Interfaces
         Task<Dictionary<DateTime, double>> GetAverageMoodByDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate);
         Task<Dictionary<string, int>> GetFactorFrequencyAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null);
         Task<int> GetEntryCountAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null);
+        Task<int> CountActiveEntriesForDateAsync(Guid userId, DateTime date);
     }
 }

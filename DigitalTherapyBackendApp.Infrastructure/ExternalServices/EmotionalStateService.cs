@@ -127,6 +127,11 @@ namespace DigitalTherapyBackendApp.Infrastructure.ExternalServices
             };
         }
 
+        public async Task<int> GetActiveEntryCountForDateAsync(Guid userId, DateTime date)
+        {
+            return await _emotionalStateRepository.CountActiveEntriesForDateAsync(userId, date);
+        }
+
 
         private EmotionalStateDto MapToDto(EmotionalState entity)
         {

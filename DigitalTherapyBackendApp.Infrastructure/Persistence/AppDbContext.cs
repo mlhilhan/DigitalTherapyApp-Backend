@@ -35,7 +35,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Persistence
         public DbSet<Payment> Payments { get; set; }
         public DbSet<SubscriptionPrice> SubscriptionPrices { get; set; }
         public DbSet<SubscriptionTranslation> SubscriptionTranslations { get; set; }
-
+        public DbSet<FeatureUsage> FeatureUsages { get; set; }
 
         // Configuration Class
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -61,6 +61,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.Persistence
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
             modelBuilder.ApplyConfiguration(new SubscriptionPriceConfiguration());
             modelBuilder.ApplyConfiguration(new SubscriptionTranslationConfiguration());
+            modelBuilder.ApplyConfiguration(new FeatureUsageConfiguration());
 
             // User - Role One-to-Many ilişkisi
             modelBuilder.Entity<User>()

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DigitalTherapyBackendApp.Application.Dtos.Subscription;
 using DigitalTherapyBackendApp.Application.Interfaces;
+using DigitalTherapyBackendApp.Domain.Entities;
 using DigitalTherapyBackendApp.Domain.Entities.Subscriptions;
 using DigitalTherapyBackendApp.Domain.Interfaces;
 using DigitalTherapyBackendApp.Infrastructure.Persistence;
@@ -224,6 +225,7 @@ namespace DigitalTherapyBackendApp.Infrastructure.ExternalServices
                     return userSubscription.Subscription.HasPsychologistSupport;
 
                 case "advanced_reports":
+                case "advanced_mood_views":
                     return userSubscription.Subscription.HasAdvancedReports;
 
                 case "all_meditation_content":
@@ -231,6 +233,13 @@ namespace DigitalTherapyBackendApp.Infrastructure.ExternalServices
 
                 case "emergency_support":
                     return userSubscription.Subscription.HasEmergencySupport;
+
+                case "mood_entry":
+                case "basic_mood_tracking":
+                    return true;
+
+                case "basic_ai_chat":
+                    return true;
 
                 default:
                     return false;
@@ -494,6 +503,267 @@ namespace DigitalTherapyBackendApp.Infrastructure.ExternalServices
             }
 
             return allPlans.Where(p => p.PlanId == "free").ToList();
+        }
+
+        public async Task<FeatureLimitResult> CheckFeatureLimitAsync(Guid userId, string featureName, string limitType = "daily", DateTime? specificDate = null)
+        {
+            var userSubscription = await _context.UserSubscriptions
+                .Include(us => us.Subscription)
+                .Where(us => us.UserId == userId && us.IsActive && us.EndDate > DateTime.UtcNow)
+                .OrderByDescending(us => us.EndDate)
+                .FirstOrDefaultAsync();
+
+            int defaultLimit = 1;
+            string planId = userSubscription?.Subscription?.PlanId ?? "free";
+
+            if (userSubscription == null)
+            {
+                if (featureName.ToLower() == "mood_entry")
+                {
+                    return new FeatureLimitResult
+                    {
+                        IsAllowed = true,
+                        Message = "Free plan allows 1 mood entry per day.",
+                        ErrorCode = null,
+                        CurrentUsage = 0,
+                        Limit = defaultLimit,
+                        ResetTime = DateTime.UtcNow.Date.AddDays(1),
+                        SpecificDate = specificDate
+                    };
+                }
+
+                return new FeatureLimitResult
+                {
+                    IsAllowed = false,
+                    Message = "You don't have an active subscription.",
+                    ErrorCode = "NO_ACTIVE_SUBSCRIPTION",
+                    CurrentUsage = 0,
+                    Limit = 0
+                };
+            }
+
+            bool hasAccess = await CheckUserFeatureAccessAsync(userId, featureName);
+            if (!hasAccess)
+            {
+                return new FeatureLimitResult
+                {
+                    IsAllowed = false,
+                    Message = "Your subscription does not include access to this feature.",
+                    ErrorCode = "FEATURE_ACCESS_DENIED",
+                    CurrentUsage = 0,
+                    Limit = 0
+                };
+            }
+
+            int? limit = null;
+            DateTime? resetTime = null;
+
+            switch (featureName.ToLower())
+            {
+                case "mood_entry":
+                    limit = userSubscription.Subscription.MoodEntryLimit;
+                    resetTime = DateTime.UtcNow.Date.AddDays(1);
+                    break;
+                case "ai_chat_session":
+                    limit = userSubscription.Subscription.AIChatSessionsPerWeek;
+                    int daysToAdd = (8 - (int)DateTime.UtcNow.DayOfWeek) % 7;
+                    if (daysToAdd == 0) daysToAdd = 7;
+                    resetTime = DateTime.UtcNow.Date.AddDays(daysToAdd);
+                    break;
+
+                case "chat_message":
+                    limit = userSubscription.Subscription.MessageLimitPerChat;
+                    resetTime = null;
+                    break;
+
+                case "psychologist_session":
+                    limit = userSubscription.Subscription.PsychologistSessionsPerMonth;
+                    resetTime = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(1);
+                    break;
+
+                default:
+                    limit = 0;
+                    resetTime = null;
+                    break;
+            }
+
+            if (limit == null || limit <= 0)
+            {
+                if (featureName.ToLower() == "mood_entry")
+                {
+                    limit = defaultLimit;
+                }
+                else if (limit == -1)
+                {
+                    return new FeatureLimitResult
+                    {
+                        IsAllowed = true,
+                        Message = "No limit for this feature.",
+                        CurrentUsage = 0,
+                        Limit = -1,
+                        ResetTime = resetTime,
+                        SpecificDate = specificDate
+                    };
+                }
+            }
+
+            int currentUsage;
+            if (specificDate.HasValue && featureName.ToLower() == "mood_entry")
+            {
+                DateTime startOfDay = specificDate.Value.Date;
+                DateTime endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+
+                try
+                {
+                    currentUsage = await _context.FeatureUsages
+                        .CountAsync(fu => fu.UserId == userId &&
+                                    fu.FeatureName == featureName &&
+                                    fu.UsageTime >= startOfDay &&
+                                    fu.UsageTime <= endOfDay &&
+                                    !fu.IsDeleted);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error counting feature usage");
+                    currentUsage = 0;
+                }
+            }
+            else
+            {
+                currentUsage = await GetFeatureUsageCountAsync(userId, featureName, limitType);
+            }
+
+            bool isAllowed = currentUsage < limit;
+
+            return new FeatureLimitResult
+            {
+                IsAllowed = isAllowed,
+                Message = isAllowed
+                    ? $"You have {limit - currentUsage} uses left."
+                    : $"You have reached your daily limit for this feature.",
+                ErrorCode = isAllowed ? null : "FEATURE_LIMIT_REACHED",
+                CurrentUsage = currentUsage,
+                Limit = limit.Value,
+                ResetTime = resetTime,
+                SpecificDate = specificDate
+            };
+        }
+
+        public async Task<int> GetFeatureUsageCountAsync(Guid userId, string featureName, string limitType = "daily")
+        {
+            try
+            {
+                DateTime startDate;
+
+                switch (limitType.ToLower())
+                {
+                    case "daily":
+                        startDate = DateTime.UtcNow.Date;
+                        break;
+                    case "weekly":
+                        int daysToSubtract = (int)DateTime.UtcNow.DayOfWeek - 1;
+                        if (daysToSubtract < 0) daysToSubtract = 6;
+                        startDate = DateTime.UtcNow.Date.AddDays(-daysToSubtract);
+                        break;
+                    case "monthly":
+                        startDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+                        break;
+                    default:
+                        startDate = DateTime.UtcNow.Date;
+                        break;
+                }
+
+                var usageCount = await _context.FeatureUsages
+                    .CountAsync(fu => fu.UserId == userId &&
+                                fu.FeatureName == featureName &&
+                                fu.UsageTime >= startDate);
+
+                return usageCount;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Feature usage count retrieval failed");
+                return 0;
+            }
+        }
+
+        public async Task IncrementFeatureUsageAsync(Guid userId, string featureName, DateTime? usageTime = null)
+        {
+            try
+            {
+                DateTime actualUsageTime = usageTime.HasValue
+                    ? usageTime.Value.Date
+                    : DateTime.UtcNow;
+
+                var featureUsage = new FeatureUsage
+                {
+                    UserId = userId,
+                    FeatureName = featureName,
+                    UsageTime = actualUsageTime,
+                    IsDeleted = false
+                };
+
+                await _context.FeatureUsages.AddAsync(featureUsage);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Feature usage increment failed");
+            }
+        }
+
+        public async Task<bool> HasAdvancedFeatureAccessAsync(Guid userId, string featureName, int requiredLevel = 1)
+        {
+            var userSubscription = await _context.UserSubscriptions
+                .Include(us => us.Subscription)
+                .Where(us => us.UserId == userId && us.IsActive && us.EndDate > DateTime.UtcNow)
+                .OrderByDescending(us => us.EndDate)
+                .FirstOrDefaultAsync();
+
+            if (userSubscription == null)
+                return requiredLevel <= 1;
+
+            int userLevel;
+            switch (userSubscription.Subscription.PlanId.ToLower())
+            {
+                case "free": userLevel = 1; break;
+                case "standard": userLevel = 2; break;
+                case "premium": userLevel = 3; break;
+                case "pro": userLevel = 4; break;
+                default: userLevel = 1; break;
+            }
+
+            if (userLevel < requiredLevel)
+                return false;
+
+            return await CheckUserFeatureAccessAsync(userId, featureName);
+        }
+
+        public async Task MarkFeatureUsageAsDeletedAsync(Guid userId, string featureName, DateTime usageTime)
+        {
+            try
+            {
+                DateTime startOfDay = usageTime.Date;
+                DateTime endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+
+                var featureUsages = await _context.FeatureUsages
+                    .Where(fu => fu.UserId == userId &&
+                           fu.FeatureName == featureName &&
+                           fu.UsageTime >= startOfDay &&
+                           fu.UsageTime <= endOfDay)
+                    .ToListAsync();
+
+                foreach (var featureUsage in featureUsages)
+                {
+                    featureUsage.IsDeleted = true;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Marking feature usage as deleted failed");
+            }
         }
     }
 }

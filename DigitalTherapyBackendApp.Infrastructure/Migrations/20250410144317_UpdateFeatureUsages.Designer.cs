@@ -3,6 +3,7 @@ using System;
 using DigitalTherapyBackendApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DigitalTherapyBackendApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250410144317_UpdateFeatureUsages")]
+    partial class UpdateFeatureUsages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -310,35 +313,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.ToTable("EmotionalStates", (string)null);
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.FeatureUsage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("FeatureName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("UsageTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "FeatureName", "UsageTime");
-
-                    b.ToTable("FeatureUsages", (string)null);
-                });
-
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.InstitutionProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -623,6 +597,32 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Specialties", (string)null);
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.FeatureUsage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FeatureName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UsageTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "FeatureName", "UsageTime");
+
+                    b.ToTable("FeatureUsages", (string)null);
                 });
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.Payment", b =>
@@ -1242,17 +1242,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
-            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.FeatureUsage", b =>
-                {
-                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.InstitutionProfile", b =>
                 {
                     b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "User")
@@ -1321,6 +1310,17 @@ namespace DigitalTherapyBackendApp.Infrastructure.Migrations
                     b.Navigation("Sender");
 
                     b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.FeatureUsage", b =>
+                {
+                    b.HasOne("DigitalTherapyBackendApp.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DigitalTherapyBackendApp.Domain.Entities.Subscriptions.Payment", b =>

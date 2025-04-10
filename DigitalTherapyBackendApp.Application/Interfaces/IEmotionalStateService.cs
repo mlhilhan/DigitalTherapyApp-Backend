@@ -18,5 +18,6 @@ namespace DigitalTherapyBackendApp.Infrastructure.ExternalServices
         Task<bool> DeleteAsync(Guid id, Guid userId);
         Task<bool> ToggleBookmarkAsync(Guid id, Guid userId);
         Task<EmotionalStateStatisticsDto> GetStatisticsAsync(Guid userId, DateTime? startDate = null, DateTime? endDate = null);
+        Task<int> GetActiveEntryCountForDateAsync(Guid userId, DateTime date);
     }
 }

@@ -32,5 +32,21 @@ namespace DigitalTherapyBackendApp.Application.Interfaces
         Task<SubscriptionDto> UpdateSubscriptionPlanAsync(SubscriptionDto subscriptionDto);
         Task<List<UserSubscriptionDto>> GetAllUserSubscriptionsAsync();
         Task<List<SubscriptionDetailsDto>> GetSubscriptionsWithDetailsByRoleAsync(string roleId, string countryCode, string languageCode);
+        Task<int> GetFeatureUsageCountAsync(Guid userId, string featureName, string limitType = "daily");
+        Task IncrementFeatureUsageAsync(Guid userId, string featureName, DateTime? usageTime = null);
+        Task<bool> HasAdvancedFeatureAccessAsync(Guid userId, string featureName, int requiredLevel = 1);
+        Task<FeatureLimitResult> CheckFeatureLimitAsync(Guid userId, string featureName, string limitType = "daily", DateTime? specificDate = null);
+        Task MarkFeatureUsageAsDeletedAsync(Guid userId, string featureName, DateTime usageTime);
+    }
+
+    public class FeatureLimitResult
+    {
+        public bool IsAllowed { get; set; }
+        public string Message { get; set; }
+        public string ErrorCode { get; set; }
+        public int CurrentUsage { get; set; }
+        public int Limit { get; set; }
+        public DateTime? ResetTime { get; set; }
+        public DateTime? SpecificDate { get; set; }
     }
 }
