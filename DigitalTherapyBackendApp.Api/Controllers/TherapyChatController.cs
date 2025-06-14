@@ -1,4 +1,5 @@
-﻿using DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands;
+﻿using DigitalTherapyBackendApp.Api.Attributes;
+using DigitalTherapyBackendApp.Api.Features.TherapyChat.Commands;
 using DigitalTherapyBackendApp.Api.Features.TherapyChat.Payloads;
 using DigitalTherapyBackendApp.Api.Features.TherapyChat.Queries;
 using DigitalTherapyBackendApp.Api.Features.TherapyChat.Responses;
@@ -30,6 +31,7 @@ namespace DigitalTherapyBackendApp.Api.Controllers
         /// Terapi asistanına mesaj gönderir
         /// </summary>
         [HttpPost("SendMessage")]
+        [SubscriptionFeature("chat_message", 1, true, "per_session")]
         public async Task<ActionResult<SendChatMessageResponse>> SendMessage([FromBody] SendChatMessagePayload payload)
         {
             try
@@ -119,6 +121,7 @@ namespace DigitalTherapyBackendApp.Api.Controllers
         /// Yeni bir yapay zeka terapi oturumu başlatır
         /// </summary>
         [HttpPost("StartSession")]
+        [SubscriptionFeature("ai_chat_session", 1, true, "weekly")]
         public async Task<ActionResult<StartChatSessionResponse>> StartSession([FromBody] StartSessionPayload request)
         {
             try
